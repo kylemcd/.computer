@@ -24,6 +24,7 @@
       environment.systemPackages = with pkgs; [
         # apps
         _1password-gui
+        aerospace
         chatgpt
         code-cursor
         google-chrome
@@ -79,13 +80,13 @@
             home.stateVersion = "24.05";
 
             home.file.".config/nvim".source = config.lib.file.mkOutOfStoreSymlink "${config.home.homeDirectory}/.computer/nvim";
+            home.file.".aerospace.toml".source = config.lib.file.mkOutOfStoreSymlink "${config.home.homeDirectory}/.computer/aerospace/config.toml";
 
             programs.git = {
               enable = true;
               package = pkgs.gitAndTools.gitFull;          # helper support
               extraConfig.credential.helper = "osxkeychain";
             };
-
 
             programs.zsh = {
               enable = true;
