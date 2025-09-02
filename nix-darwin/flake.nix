@@ -1,0 +1,117 @@
+{
+  description = "KPM nix-darwin system flake";
+
+  inputs = {
+    nixpkgs.url = "github:NixOS/nixpkgs/nixpkgs-unstable";
+
+    nix-darwin.url = "github:LnL7/nix-darwin";
+    nix-darwin.inputs.nixpkgs.follows = "nixpkgs";
+
+    home-manager.url = "github:nix-community/home-manager";
+    home-manager.inputs.nixpkgs.follows = "nixpkgs";
+  };
+
+  outputs = inputs@{ self, nixpkgs, nix-darwin, home-manager, ... }:
+  let
+    configuration = { pkgs, ... }: {
+      system.primaryUser = "kyle";
+
+      nixpkgs = {
+        hostPlatform = "aarch64-darwin";
+        config.allowUnfree = true;
+      };
+
+      environment.systemPackages = with pkgs; [
+        # apps
+        _1password-gui
+        obsidian
+        code-cursor
+        raycast
+        iterm2
+        shottr
+        postman
+        slack
+        chatgpt
+        google-chrome
+        # terminal
+        oh-my-zsh
+        oh-my-posh
+        neovim
+        zoxide
+        # dev utilities
+        asdf
+        graphite-cli
+        gh
+        git
+      ];
+
+      # Set your login shell at the OS level (zsh here)
+      users.users.kyle = {
+        home = "/Users/kyle";
+        shell = pkgs.zsh;
+      };
+
+      # nix command + flakes
+      nix.settings.experimental-features = [ "nix-command" "flakes" ];
+
+      system.configurationRevision = self.rev or self.dirtyRev or null;
+      system.stateVersion = 6;
+
+      # macOS settings
+      system.defaults.dock.autohide = true;
+      system.defaults.dock.orientation = "left";
+      system.defaults.dock.show-recents = false; 
+      system.defaults.dock.magnification = false;
+      system.defaults.dock.autohide-time-modifier = 0.5;
+      
+    };
+  in {
+    darwinConfigurations.kpm = nix-darwin.lib.darwinSystem {
+      system = "aarch64-darwin";
+      modules = [
+        configuration
+
+        # Wire in Home Manager on macOS
+        home-manager.darwinModules.home-manager
+        {
+          home-manager.useGlobalPkgs = true;
+          home-manager.useUserPackages = true;
+
+          # Your Home Manager user config (dotfiles-level, per-user)
+          home-manager.users.kyle = { pkgs, config, ... }: {
+            home.stateVersion = "24.05";
+
+            home.file.".config/nvim".source = config.lib.file.mkOutOfStoreSymlink "${config.home.homeDirectory}/.computer/nvim";
+
+            programs.git = {
+              enable = true;
+              package = pkgs.gitAndTools.gitFull;          # helper support
+              extraConfig.credential.helper = "osxkeychain";
+            };
+
+
+            programs.zsh = {
+              enable = true;
+
+              # These are Home Manager options (not nix-darwin)
+              enableCompletion = true;
+              autosuggestion.enable = true;   
+              syntaxHighlighting.enable = true;
+
+              oh-my-zsh = {
+                enable = true;
+                theme = "agnoster"; 
+                plugins = [ "git" "npm" "history" "node" ];
+              };
+              
+              initContent = ''
+                export PATH="/run/current-system/sw/bin:/nix/var/nix/profiles/default/bin:$PATH"
+                [ -f ~/.computer/zsh/aliases.zsh ] && source ~/.computer/zsh/aliases.zsh
+              '';
+            };
+          };
+        }
+      ];
+    };
+  };
+}
