@@ -55,18 +55,31 @@ default-root-container-orientation = 'horizontal'
     alt-shift-8 = 'move-node-to-workspace 8 --focus-follows-window'
     alt-shift-9 = 'move-node-to-workspace 9 --focus-follows-window'
 
-    alt-c = 'exec-and-forget open -a "Cursor"'
-    alt-o = 'exec-and-forget open -a "Obsidian"'
-    alt-t = 'exec-and-forget open -a "iTerm"'
-    alt-s = 'exec-and-forget open -a "Slack"'
     alt-b = 'exec-and-forget open -a "Google Chrome"'
-    alt-m = 'exec-and-forget open -a "Music"'
-    alt-p = 'exec-and-forget open -a "Messages"'
-    alt-i = 'exec-and-forget open -a "Linear"'
+    alt-c = 'exec-and-forget open -a "Cursor"'
     alt-e = 'exec-and-forget open -a "Mail"'
+    alt-i = 'exec-and-forget open -a "Linear"'
+    alt-m = 'exec-and-forget open -a "Music"'
+    alt-n = 'exec-and-forget open -a "Notion"'
+    alt-o = 'exec-and-forget open -a "Obsidian"'
+    alt-s = 'exec-and-forget open -a "Slack"'
+    alt-t = 'exec-and-forget open -a "iTerm"'
+    alt-shift-c = 'exec-and-forget open -a "Calendar"'
+    alt-shift-m = 'exec-and-forget open -a "Music"'
+    alt-shift-p = 'exec-and-forget open -a "1Password"'
+    alt-shift-t = 'exec-and-forget open -a "Messages"'
+    alt-shift-r = 'exec-and-forget open -a "Reminders"'
 
 [workspace-to-monitor-force-assignment]
     9 = 'secondary'
+
+[[on-window-detected]]
+if.app-name-regex-substring = '1Password'
+run = 'layout floating'
+
+[[on-window-detected]]
+if.app-name-regex-substring = 'Calendar'
+run = 'layout floating'
 
 [[on-window-detected]]
 if.app-name-regex-substring = 'Messages'
@@ -77,5 +90,5 @@ if.app-name-regex-substring = 'Music'
 run = 'layout floating'
 
 [[on-window-detected]]
-if.app-name-regex-substring = '1Password'
+if.app-name-regex-substring = 'Reminders'
 run = 'layout floating'
