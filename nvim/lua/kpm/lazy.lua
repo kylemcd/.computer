@@ -14,25 +14,15 @@ vim.opt.rtp:prepend(lazypath)
 vim.g.mapleader = " " -- Make sure to set `mapleader` before lazy so your mappings are correct
 
 local plugins = {
-	"wbthomason/packer.nvim",
 	"nvim-lua/plenary.nvim",
 	{
 		"nvim-telescope/telescope.nvim",
 		tag = "0.1.4",
 		dependencies = { "nvim-lua/plenary.nvim" },
 	},
-	{ "nvim-treesitter/nvim-treesitter", run = ":TSUpdate" },
-	"nvim-treesitter/nvim-treesitter-context",
-	"nvim-treesitter/playground",
+	{ "nvim-treesitter/nvim-treesitter", build = ":TSUpdate" },
 	-- Visuals
-	{
-		"datsfilipe/vesper.nvim",
-		config = function()
-			require("vesper").setup({
-				vim.cmd("colorscheme vesper"),
-			})
-		end,
-	},
+	"datsfilipe/vesper.nvim",
 	"nvim-tree/nvim-web-devicons",
 	"nvim-lualine/lualine.nvim",
 	-- LSP
@@ -66,8 +56,6 @@ local plugins = {
 		"williamboman/mason-lspconfig.nvim",
 		dependencies = { "williamboman/mason.nvim" },
 	},
-	"williamboman/mason.nvim", -- in charge of managing lsp servers, linters & formatters
-	"williamboman/mason-lspconfig.nvim", -- bridges gap b/w mason & lspconfig
 	"neovim/nvim-lspconfig", -- easily configure language servers
 	"hrsh7th/cmp-nvim-lsp", -- for autocompletion
 	{
@@ -75,7 +63,7 @@ local plugins = {
 		config = function()
 			require("lspsaga").setup({})
 		end,
-		requires = {
+		dependencies = {
 			"nvim-tree/nvim-web-devicons",
 			"nvim-treesitter/nvim-treesitter",
 		},
@@ -96,39 +84,22 @@ local plugins = {
 	"numToStr/Comment.nvim", -- Comment blocks
 	"folke/zen-mode.nvim", -- Focus one pane
 	"github/copilot.vim", -- AI Autocomplete
-	"jose-elias-alvarez/typescript.nvim", -- additional functionality for typescript server (e.g. rename file & update imports)
+	-- remove typescript.nvim unless wired up later
 	"tpope/vim-surround", -- Wrap Things
 	-- Git
 	"tpope/vim-fugitive",
 	{
-		"nvim-pack/nvim-spectre",
-		requires = {
-			"nvim-lua/plenary.nvim",
-		},
-	},
-	{
 		"petertriho/cmp-git",
-		requires = {
+		dependencies = {
 			"nvim-lua/plenary.nvim",
 		},
-		config = function()
-			require("cmp").setup({
-				sources = {
-					{ name = "git" },
-				},
-			})
-			require("cmp_git").setup()
-		end,
 	},
 	"lewis6991/gitsigns.nvim",
-	"f-person/git-blame.nvim",
 	-- Snippets
 	"L3MON4D3/LuaSnip", -- snippet engine
 	"saadparwaiz1/cmp_luasnip", -- for autocompletion
 	"rafamadriz/friendly-snippets", -- useful snippets
-	-- Search
-	"jremmen/vim-ripgrep",
-	"duane9/nvim-rg",
+    -- Search: use Telescope live_grep instead of legacy rg plugins
 }
 
 require("lazy").setup(plugins)

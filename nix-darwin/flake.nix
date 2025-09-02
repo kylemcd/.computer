@@ -24,25 +24,25 @@
       environment.systemPackages = with pkgs; [
         # apps
         _1password-gui
-        obsidian
-        code-cursor
-        raycast
-        iterm2
-        shottr
-        postman
-        slack
         chatgpt
+        code-cursor
         google-chrome
+        iterm2
+        obsidian
+        postman
+        raycast
+        shottr
+        slack
         # terminal
-        oh-my-zsh
-        oh-my-posh
         neovim
+        oh-my-posh
+        oh-my-zsh
         zoxide
         # dev utilities
-        asdf
-        graphite-cli
+        asdf-vm
         gh
         git
+        graphite-cli
       ];
 
       # Set your login shell at the OS level (zsh here)
@@ -51,9 +51,7 @@
         shell = pkgs.zsh;
       };
 
-      # nix command + flakes
       nix.settings.experimental-features = [ "nix-command" "flakes" ];
-
       system.configurationRevision = self.rev or self.dirtyRev or null;
       system.stateVersion = 6;
 
@@ -63,7 +61,6 @@
       system.defaults.dock.show-recents = false; 
       system.defaults.dock.magnification = false;
       system.defaults.dock.autohide-time-modifier = 0.5;
-      
     };
   in {
     darwinConfigurations.kpm = nix-darwin.lib.darwinSystem {
@@ -106,7 +103,11 @@
               
               initContent = ''
                 export PATH="/run/current-system/sw/bin:/nix/var/nix/profiles/default/bin:$PATH"
+                [ -f ~/.computer/zsh/evals.zsh ] && source ~/.computer/zsh/evals.zsh
                 [ -f ~/.computer/zsh/aliases.zsh ] && source ~/.computer/zsh/aliases.zsh
+                 . "${pkgs.asdf-vm}/share/asdf-vm/asdf.sh"
+                autoload -Uz bashcompinit && bashcompinit
+                . "${pkgs.asdf-vm}/share/asdf-vm/completions/asdf.bash"
               '';
             };
           };

@@ -51,3 +51,12 @@ cmp.setup({
     }),
   },
 })
+
+-- git completion (filetype-specific) without overriding global sources
+local cmp_git_ok, cmp_git = pcall(require, "cmp_git")
+if cmp_git_ok then
+  cmp_git.setup()
+  cmp.setup.filetype("gitcommit", {
+    sources = cmp.config.sources({ { name = "git" } }, { { name = "buffer" } }),
+  })
+end

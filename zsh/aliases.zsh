@@ -7,7 +7,6 @@ alias vi="nvim"
 alias gs='git status'
 
 # zoxide
-eval "$(zoxide init zsh)"
 alias cd='z'
 
 # Get Local IP
@@ -23,5 +22,3 @@ alias gts="gt submit"
 gtcs() {
     gt modify --commit -m "$*" && gt submit
 }
-
-eval "$(oh-my-posh init zsh --config ~/.computer/zsh/oh-my-posh.json)"
