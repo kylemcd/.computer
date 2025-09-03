@@ -91,7 +91,7 @@
       system.defaults.dock.show-recents = false; 
       system.defaults.dock.magnification = false;
       system.defaults.dock.autohide-time-modifier = 0.5;
-      # TODO: Add key mac space per window disable config here
+      system.defaults.spaces.spans-displays = false;
     };
   in {
     darwinConfigurations.kpm = nix-darwin.lib.darwinSystem {
