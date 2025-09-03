@@ -54,6 +54,7 @@
         gh
         git
         graphite-cli
+        openssl
       ];
 
       homebrew = {
@@ -61,13 +62,8 @@
         onActivation = {
           autoUpdate = true;
           upgrade = true;
-          cleanup = "uninstall"; 
+          cleanup = "uninstall";
         };
-
-        # Install cask .app bundles into Nix Apps alongside Nix-installed apps
-        caskArgs = {
-          appdir = "/Applications/Nix Apps";
-        };        
 
         # Brew only apps, not supported by nix-darwin
         casks = [
@@ -82,7 +78,7 @@
         ${openOnLogin { path = "/Applications/Nix Apps/AeroSpace.app";  }}
         ${openOnLogin { path = "/Applications/Nix Apps/Raycast.app";  }}
         ${openOnLogin { path = "/Applications/Nix Apps/Shottr.app";  }}
-        ${openOnLogin { path = "/Applications/Nix Apps/Reminders MenuBar.app";  }}
+        ${openOnLogin { path = "/Applications/Reminders MenuBar.app";  }}
       '';
 
       # macOS settings

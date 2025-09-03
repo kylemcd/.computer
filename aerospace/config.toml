@@ -64,6 +64,7 @@ default-root-container-orientation = 'horizontal'
     alt-o = 'exec-and-forget open -a "Obsidian"'
     alt-s = 'exec-and-forget open -a "Slack"'
     alt-t = 'exec-and-forget open -a "iTerm"'
+    alt-shift-a = 'exec-and-forget open -a "ChatGPT"'
     alt-shift-c = 'exec-and-forget open -a "Calendar"'
     alt-shift-m = 'exec-and-forget open -a "Music"'
     alt-shift-p = 'exec-and-forget open -a "1Password"'
@@ -79,6 +80,10 @@ run = 'layout floating'
 
 [[on-window-detected]]
 if.app-name-regex-substring = 'Calendar'
+run = 'layout floating'
+
+[[on-window-detected]]
+if.app-name-regex-substring = 'ChatGPT'
 run = 'layout floating'
 
 [[on-window-detected]]
