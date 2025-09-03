@@ -9,8 +9,8 @@
 
     home-manager.url = "github:nix-community/home-manager";
     home-manager.inputs.nixpkgs.follows = "nixpkgs";
-  };
 
+  };
   outputs = inputs@{ self, nixpkgs, nix-darwin, home-manager, ... }:
   let
     configuration = { pkgs, ... }: {
@@ -46,6 +46,21 @@
         graphite-cli
       ];
 
+      homebrew = {
+        enable = true;
+        onActivation = {
+          autoUpdate = true;
+          upgrade = true;
+          cleanup = "uninstall"; 
+        };
+
+        # Brew only apps, not supported by nix-darwin
+        casks = [
+          "reminders-menubar"
+        ];
+
+      };
+
       # Set your login shell at the OS level (zsh here)
       users.users.kyle = {
         home = "/Users/kyle";
@@ -62,6 +77,7 @@
       system.defaults.dock.show-recents = false; 
       system.defaults.dock.magnification = false;
       system.defaults.dock.autohide-time-modifier = 0.5;
+      # TODO: Add key mac space per window disable config here
     };
   in {
     darwinConfigurations.kpm = nix-darwin.lib.darwinSystem {
