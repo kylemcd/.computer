@@ -13,8 +13,18 @@
   };
   outputs = inputs@{ self, nixpkgs, nix-darwin, home-manager, ... }:
   let
+    helpers = import ./lib/helpers.nix { };
+    openOnLogin = helpers.openOnLogin;
     configuration = { pkgs, ... }: {
       system.primaryUser = "kyle";
+      users.users.kyle = {
+        home = "/Users/kyle";
+        shell = pkgs.zsh;
+      };
+
+      nix.settings.experimental-features = [ "nix-command" "flakes" ];
+      system.configurationRevision = self.rev or self.dirtyRev or null;
+      system.stateVersion = 6;
 
       nixpkgs = {
         hostPlatform = "aarch64-darwin";
@@ -54,22 +64,26 @@
           cleanup = "uninstall"; 
         };
 
+        # Install cask .app bundles into Nix Apps alongside Nix-installed apps
+        caskArgs = {
+          appdir = "/Applications/Nix Apps";
+        };        
+
         # Brew only apps, not supported by nix-darwin
         casks = [
+          "github"
           "reminders-menubar"
         ];
-
       };
 
-      # Set your login shell at the OS level (zsh here)
-      users.users.kyle = {
-        home = "/Users/kyle";
-        shell = pkgs.zsh;
-      };
-
-      nix.settings.experimental-features = [ "nix-command" "flakes" ];
-      system.configurationRevision = self.rev or self.dirtyRev or null;
-      system.stateVersion = 6;
+      # Login items via System Events (creates macOS Login Items)
+      system.activationScripts.extraActivation.text = ''
+        ${openOnLogin { path = "/Applications/Nix Apps/1Password.app";  }}
+        ${openOnLogin { path = "/Applications/Nix Apps/AeroSpace.app";  }}
+        ${openOnLogin { path = "/Applications/Nix Apps/Raycast.app";  }}
+        ${openOnLogin { path = "/Applications/Nix Apps/Shottr.app";  }}
+        ${openOnLogin { path = "/Applications/Nix Apps/Reminders MenuBar.app";  }}
+      '';
 
       # macOS settings
       system.defaults.dock.autohide = true;
