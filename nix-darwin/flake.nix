@@ -38,6 +38,7 @@
         chatgpt
         code-cursor
         google-chrome
+        ice-bar
         iterm2
         obsidian
         postman
@@ -78,6 +79,7 @@
       system.activationScripts.extraActivation.text = ''
         ${openOnLogin { path = "/Applications/Nix Apps/1Password.app";  }}
         ${openOnLogin { path = "/Applications/Nix Apps/AeroSpace.app";  }}
+        ${openOnLogin { path = "/Applications/Nix Apps/Ice.app";  }}
         ${openOnLogin { path = "/Applications/Nix Apps/Raycast.app";  }}
         ${openOnLogin { path = "/Applications/Nix Apps/Rectangle.app";  }}
         ${openOnLogin { path = "/Applications/Nix Apps/Shottr.app";  }}
@@ -88,7 +90,7 @@
       # macOS settings
       system.defaults.dock.autohide = true;
       system.defaults.dock.orientation = "left";
-      system.defaults.dock.show-recents = false; 
+      system.defaults.dock.show-recents = false;
       system.defaults.dock.magnification = false;
       system.defaults.dock.autohide-time-modifier = 0.5;
       system.defaults.spaces.spans-displays = false;
@@ -123,15 +125,15 @@
 
               # These are Home Manager options (not nix-darwin)
               enableCompletion = true;
-              autosuggestion.enable = true;   
+              autosuggestion.enable = true;
               syntaxHighlighting.enable = true;
 
               oh-my-zsh = {
                 enable = true;
-                theme = "agnoster"; 
+                theme = "agnoster";
                 plugins = [ "git" "npm" "history" "node" ];
               };
-              
+
               initContent = ''
                 export PATH="/run/current-system/sw/bin:/nix/var/nix/profiles/default/bin:$PATH"
                 [ -f ~/.computer/zsh/evals.zsh ] && source ~/.computer/zsh/evals.zsh
