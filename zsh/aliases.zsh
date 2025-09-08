@@ -12,6 +12,7 @@ alias cd='z'
 # Get Local IP
 alias localip="ipconfig getifaddr en0"
 alias publicip="curl ifconfig.me"
+alias flushdns="sudo dscacheutil -flushcache; sudo killall -HUP mDNSResponder"
 
 # graphite
 alias gta="gt add ."
