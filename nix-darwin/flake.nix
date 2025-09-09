@@ -56,7 +56,6 @@
         gh
         git
         graphite-cli
-        openssl
       ];
 
       homebrew = {
