@@ -69,7 +69,6 @@
         # Brew only apps, not supported by nix-darwin
         casks = [
           "github"
-          "hyperkey"
           "reminders-menubar"
         ];
       };
@@ -83,7 +82,6 @@
         ${openOnLogin { path = "/Applications/Nix Apps/Rectangle.app";  }}
         ${openOnLogin { path = "/Applications/Nix Apps/Shottr.app";  }}
         ${openOnLogin { path = "/Applications/Reminders MenuBar.app";  }}
-        ${openOnLogin { path = "/Applications/Hyperkey.app";  }}
       '';
 
       # macOS settings
