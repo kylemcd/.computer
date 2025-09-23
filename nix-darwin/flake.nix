@@ -69,6 +69,7 @@
         # Brew only apps, not supported by nix-darwin
         casks = [
           "github"
+          "philips-hue-sync"
           "reminders-menubar"
         ];
       };

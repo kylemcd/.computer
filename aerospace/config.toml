@@ -83,10 +83,6 @@ if.app-name-regex-substring = 'Calendar'
 run = 'layout floating'
 
 [[on-window-detected]]
-if.app-name-regex-substring = 'ChatGPT'
-run = 'layout floating'
-
-[[on-window-detected]]
 if.app-name-regex-substring = 'Messages'
 run = 'layout floating'
 
@@ -97,3 +93,15 @@ run = 'layout floating'
 [[on-window-detected]]
 if.app-name-regex-substring = 'Reminders'
 run = 'layout floating'
+
+[[on-window-detected]]
+if.app-name-regex-substring = 'Slack'
+run = 'move-node-to-workspace 9'
+
+[[on-window-detected]]
+if.app-name-regex-substring = 'Granola'
+run = 'move-node-to-workspace 8'
+
+[[on-window-detected]]
+if.app-name-regex-substring = 'Zoom'
+run = 'move-node-to-workspace 8'
