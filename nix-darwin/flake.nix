@@ -37,6 +37,7 @@
         aerospace
         chatgpt
         code-cursor
+        firefox
         google-chrome
         ice-bar
         iterm2
