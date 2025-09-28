@@ -71,6 +71,7 @@
           "github"
           "philips-hue-sync"
           "reminders-menubar"
+          "tailscale"
         ];
       };
 
@@ -83,6 +84,7 @@
         ${openOnLogin { path = "/Applications/Nix Apps/Rectangle.app";  }}
         ${openOnLogin { path = "/Applications/Nix Apps/Shottr.app";  }}
         ${openOnLogin { path = "/Applications/Reminders MenuBar.app";  }}
+        ${openOnLogin { path = "/Applications/Tailscale.app";  }}
       '';
 
       # macOS settings
