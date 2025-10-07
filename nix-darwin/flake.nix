@@ -138,11 +138,22 @@
 
               initContent = ''
                 export PATH="/run/current-system/sw/bin:/nix/var/nix/profiles/default/bin:$PATH"
+                # Initialize Homebrew environment (needed for headers/libs and tools on Apple Silicon)
+                if [ -x /opt/homebrew/bin/brew ]; then
+                  eval "$(/opt/homebrew/bin/brew shellenv)"
+                fi
                 [ -f ~/.computer/zsh/evals.zsh ] && source ~/.computer/zsh/evals.zsh
                 [ -f ~/.computer/zsh/aliases.zsh ] && source ~/.computer/zsh/aliases.zsh
                  . "${pkgs.asdf-vm}/share/asdf-vm/asdf.sh"
                 autoload -Uz bashcompinit && bashcompinit
                 . "${pkgs.asdf-vm}/share/asdf-vm/completions/asdf.bash"
+
+                # Ensure asdf-erlang builds link against Homebrew OpenSSL 3
+                export KERL_CONFIGURE_OPTIONS="--without-javac --without-erl_interface --with-ssl=$ASDF_ERLANG_OPENSSL_DIR"
+                export KERL_BUILD_DOCS=no
+                export CPPFLAGS="-I$ASDF_ERLANG_OPENSSL_DIR/include ''${CPPFLAGS:-}"
+                export LDFLAGS="-L$ASDF_ERLANG_OPENSSL_DIR/lib ''${LDFLAGS:-}"
+                export PKG_CONFIG_PATH="$ASDF_ERLANG_OPENSSL_DIR/lib/pkgconfig:''${PKG_CONFIG_PATH:-}"
               '';
             };
           };
