@@ -52,6 +52,7 @@
         oh-my-posh
         oh-my-zsh
         zoxide
+        bun
         # dev utilities
         asdf-vm
         gh
@@ -64,7 +65,7 @@
         onActivation = {
           autoUpdate = true;
           upgrade = true;
-          cleanup = "uninstall";
+          cleanup = "none";
         };
 
         # Brew only apps, not supported by nix-darwin
