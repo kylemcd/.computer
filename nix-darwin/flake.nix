@@ -58,6 +58,8 @@
         gh
         git
         graphite-cli
+        # Mac App Store apps
+        mas
       ];
 
       homebrew = {
@@ -68,13 +70,22 @@
           cleanup = "none";
         };
 
+
         # Brew only apps, not supported by nix-darwin
         casks = [
           "github"
           "philips-hue-sync"
           "reminders-menubar"
-          "tailscale"
+          "tailscale-app"
         ];
+
+        # Mac App Store apps managed via `mas`.
+        # Add entries as: "App Name" = 1234567890;  # where the number is the App Store ID
+        # Example IDs can be found with: mas search "App Name"
+        masApps = {
+        "Hand Mirror" = 1502839586;
+        "ZoneShare" = 6743621581;
+        };
       };
 
       # Login items via System Events (creates macOS Login Items)
