@@ -55,7 +55,7 @@ default-root-container-orientation = 'horizontal'
     alt-shift-8 = 'move-node-to-workspace 8 --focus-follows-window'
     alt-shift-9 = 'move-node-to-workspace 9 --focus-follows-window'
 
-    alt-b = 'exec-and-forget open -a "Google Chrome"'
+    alt-b = 'exec-and-forget open -a "Firefox"'
     alt-c = 'exec-and-forget open -a "Cursor"'
     alt-e = 'exec-and-forget open -a "Mail"'
     alt-i = 'exec-and-forget open -a "Linear"'
