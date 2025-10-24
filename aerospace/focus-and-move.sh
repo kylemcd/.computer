@@ -25,12 +25,24 @@ if [ -n "$app_window" ]; then
         
         # Now focus it on this workspace
         open -a "$app_name"
+        sleep 0.2
+        
+        # Center the window using Rectangle
+        open -g "rectangle://execute-action?name=center" 2>/dev/null
     else
         # Already on the same workspace, just focus it
         open -a "$app_name"
+        sleep 0.2
+        
+        # Center the window using Rectangle
+        open -g "rectangle://execute-action?name=center" 2>/dev/null
     fi
 else
     # App not running, just open it (will open on current workspace)
     open -a "$app_name"
+    sleep 0.2
+    
+    # Center the window using Rectangle
+    open -g "rectangle://execute-action?name=center" 2>/dev/null
 fi
 
