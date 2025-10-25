@@ -1,1 +1,2 @@
-require('kpm')
+require("plugins")
+require("keymaps")

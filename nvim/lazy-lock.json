@@ -1,0 +1,7 @@
+{
+  "conform.nvim": { "branch": "master", "commit": "9fd3d5e0b689ec1bf400c53cbbec72c6fdf24081" },
+  "lazy.nvim": { "branch": "main", "commit": "aedcd79811d491b60d0a6577a9c1701063c2a609" },
+  "mason.nvim": { "branch": "main", "commit": "9c9416817c9f4e6f333c749327a1ed5355cfab61" },
+  "vesper.nvim": { "branch": "main", "commit": "1717b1ad657c94bec3fc2bdebb0c55452d9fe46d" },
+  "zen-mode.nvim": { "branch": "main", "commit": "78557d972b4bfbb7488e17b5703d25164ae64e6a" }
+}
