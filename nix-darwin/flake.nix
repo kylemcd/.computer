@@ -41,6 +41,7 @@
         google-chrome
         ice-bar
         iterm2
+        kitty
         obsidian
         postman
         raycast
@@ -58,6 +59,7 @@
         gh
         git
         graphite-cli
+        ripgrep
         # Mac App Store apps
         mas
       ];
@@ -126,6 +128,7 @@
 
             home.file.".config/nvim".source = config.lib.file.mkOutOfStoreSymlink "${config.home.homeDirectory}/.computer/nvim";
             home.file.".aerospace.toml".source = config.lib.file.mkOutOfStoreSymlink "${config.home.homeDirectory}/.computer/aerospace/config.toml";
+            home.file.".config/kitty".source = config.lib.file.mkOutOfStoreSymlink "${config.home.homeDirectory}/.computer/kitty";
 
             programs.git = {
               enable = true;

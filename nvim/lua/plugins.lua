@@ -113,18 +113,20 @@ require("lazy").setup({
             "nvim-lua/plenary.nvim",
         },
         config = function()
-            local telescope = require("telescope")
-            local builtin = require("telescope.builtin")
-
-            telescope.setup({
+            require("telescope").setup({
                 defaults = {
                     file_ignore_patterns = {
-                        "node_modules",
-                        ".git",
-                        "dist",
-                        "build",
-                        ".next",
-                        ".cache",
+                        "node_modules/",
+                        ".git/",
+                        "dist/",
+                        "build/",
+                        ".next/",
+                        ".cache/",
+                    },
+                },
+                pickers = {
+                    find_files = {
+                        find_command = { "rg", "--files", "--iglob", "!.git", "--hidden" },
                     },
                 },
             })

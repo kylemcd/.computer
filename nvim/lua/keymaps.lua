@@ -6,7 +6,6 @@ vim.opt.nu = true
 vim.opt.relativenumber = true
 vim.opt.termguicolors = true
 vim.opt.signcolumn = "yes"
-vim.opt.guicursor = ""
 
 -- Editing
 vim.opt.tabstop = 4
@@ -83,16 +82,15 @@ vim.keymap.set("n", "<leader>zz", function()
   require("zen-mode").toggle()
 end)
 
--- Telescope
-local builtin = require("telescope.builtin")
-vim.keymap.set('n', '<leader>pf', builtin.find_files, {})
-vim.keymap.set('n', '<C-p>', builtin.git_files, {})
+-- Telescope - lazy load when needed
+vim.keymap.set('n', '<leader>pf', function() require('telescope.builtin').find_files() end, {})
+vim.keymap.set('n', '<C-p>', function() require('telescope.builtin').git_files() end, {})
 vim.keymap.set('n', '<leader>ps', function()
-    builtin.grep_string({ search = vim.fn.input("Grep > ") })
+    require('telescope.builtin').grep_string({ search = vim.fn.input("Grep > ") })
 end)
-vim.keymap.set('n', '<leader>pg', builtin.live_grep, {})
-vim.keymap.set('n', '<leader>pb', builtin.buffers, {})
-vim.keymap.set('n', '<leader>ph', builtin.help_tags, {})
+vim.keymap.set('n', '<leader>pg', function() require('telescope.builtin').live_grep() end, {})
+vim.keymap.set('n', '<leader>pb', function() require('telescope.builtin').buffers() end, {})
+vim.keymap.set('n', '<leader>ph', function() require('telescope.builtin').help_tags() end, {})
 
 -- Install missing tools
 vim.keymap.set("n", "<leader>mi", function()
@@ -116,24 +114,3 @@ vim.api.nvim_create_autocmd({ "BufWritePre" }, {
   pattern = "*",
   command = [[%s/\s\+$//e]],
 })
-
--- Telescope keymaps 
-local builtin = require("telescope.builtin")
-vim.keymap.set('n', '<leader>pf', builtin.find_files, {})
-vim.keymap.set('n', '<C-p>', builtin.git_files, {})
-vim.keymap.set('n', '<leader>ps', function()
-    builtin.grep_string({ search = vim.fn.input("Grep > ") })
-end)
-vim.keymap.set('n', '<leader>pg', builtin.live_grep, {})
-vim.keymap.set('n', '<leader>pb', builtin.buffers, {})
-vim.keymap.set('n', '<leader>ph', builtin.help_tags, {})
-
--- Zen mode
-vim.keymap.set("n", "<leader>zz", function()
-  require("zen-mode").toggle()
-end)
-
--- Mason
-vim.keymap.set("n", "<leader>mi", function()
-  vim.cmd("Mason")
-end, { desc = "Open Mason to install tools" })
