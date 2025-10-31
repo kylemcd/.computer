@@ -53,13 +53,6 @@ require("lazy").setup({
                         args = {
                             "--stdin-filepath",
                             "$FILENAME",
-                            "--single-quote",
-                            "--trailing-comma",
-                            "es5",
-                            "--print-width",
-                            "80",
-                            "--tab-width",
-                            "2",
                         },
                     },
                 },
