@@ -159,9 +159,7 @@
                 fi
                 [ -f ~/.computer/zsh/evals.zsh ] && source ~/.computer/zsh/evals.zsh
                 [ -f ~/.computer/zsh/aliases.zsh ] && source ~/.computer/zsh/aliases.zsh
-                 . "${pkgs.asdf-vm}/share/asdf-vm/asdf.sh"
-                autoload -Uz bashcompinit && bashcompinit
-                . "${pkgs.asdf-vm}/share/asdf-vm/completions/asdf.bash"
+                . "${pkgs.asdf-vm}/etc/profile.d/asdf-prepare.sh"
 
                 # Ensure asdf-erlang builds link against Homebrew OpenSSL 3
                 export KERL_CONFIGURE_OPTIONS="--without-javac --without-erl_interface --with-ssl=$ASDF_ERLANG_OPENSSL_DIR"
