@@ -75,6 +75,7 @@
 
         # Brew only apps, not supported by nix-darwin
         casks = [
+          "ghostty"
           "github"
           "philips-hue-sync"
           "reminders-menubar"
@@ -86,7 +87,6 @@
         # Example IDs can be found with: mas search "App Name"
         masApps = {
         "Hand Mirror" = 1502839586;
-        "ZoneShare" = 6743621581;
         };
       };
 
@@ -129,11 +129,12 @@
             home.file.".config/nvim".source = config.lib.file.mkOutOfStoreSymlink "${config.home.homeDirectory}/.computer/nvim";
             home.file.".aerospace.toml".source = config.lib.file.mkOutOfStoreSymlink "${config.home.homeDirectory}/.computer/aerospace/config.toml";
             home.file.".config/kitty".source = config.lib.file.mkOutOfStoreSymlink "${config.home.homeDirectory}/.computer/kitty";
+            home.file.".config/ghostty".source = config.lib.file.mkOutOfStoreSymlink "${config.home.homeDirectory}/.computer/ghostty";
 
             programs.git = {
               enable = true;
-              package = pkgs.gitAndTools.gitFull;          # helper support
-              extraConfig.credential.helper = "osxkeychain";
+              package = pkgs.gitFull;          # helper support
+              settings.credential.helper = "osxkeychain";
             };
 
             programs.zsh = {

@@ -1,0 +1,80 @@
+# --- Fonts -------------------------------------------------
+font-family = "Berkeley Mono"
+font-size   = 14
+adjust-cell-height = 4%
+
+# --- Cursor ------------------------------------------------
+cursor-style       = block
+cursor-style-blink = false
+cursor-color       = #58a6ff
+cursor-text        = #000000
+
+# --- Scrollback --------------------------------------------
+# ~1 MiB of scrollback; tweak if you want more
+scrollback-limit = 1048576
+
+# --- Mouse -------------------------------------------------
+mouse-hide-while-typing = true
+mouse-scroll-multiplier = 1
+
+# --- Bell / alerts -----------------------------------------
+# Disable audio bell, keep attention/title behavior
+bell-features = no-audio
+
+# --- Window ------------------------------------------------
+window-width  = 80
+window-height = 24
+
+# macOS window behaviour similar to a minimal Kitty setup
+macos-titlebar-style = hidden
+macos-window-buttons = hidden
+window-step-resize   = true
+window-save-state    = always
+
+# --- Colors (GitHub Dark-ish) ------------------------------
+background = #000000
+foreground = #e6edf3
+
+selection-background = #264f78
+selection-foreground = #e6edf3
+
+cursor-opacity = 1.0
+
+palette = 0=#484f58
+palette = 1=#ff7b72
+palette = 2=#7ee787
+palette = 3=#ffa657
+palette = 4=#79c0ff
+palette = 5=#d2a8ff
+palette = 6=#56d4dd
+palette = 7=#e6edf3
+palette = 8=#6e7681
+palette = 9=#ffa198
+palette = 10=#a5d6ff
+palette = 11=#ffb357
+palette = 12=#a5d6ff
+palette = 13=#e2b9ff
+palette = 14=#7ee8e8
+palette = 15=#f0f6fc
+
+# --- Links -------------------------------------------------
+link-url       = true
+link-previews  = false
+
+# --- Keybindings (to mimic your Kitty ones) ----------------
+# Tab navigation: Cmd+Shift+1..9
+keybind = cmd+shift+1=goto_tab:1
+keybind = cmd+shift+2=goto_tab:2
+keybind = cmd+shift+3=goto_tab:3
+keybind = cmd+shift+4=goto_tab:4
+keybind = cmd+shift+5=goto_tab:5
+keybind = cmd+shift+6=goto_tab:6
+keybind = cmd+shift+7=goto_tab:7
+keybind = cmd+shift+8=goto_tab:8
+keybind = cmd+shift+9=goto_tab:9
+
+# Tab management
+keybind = cmd+t=new_tab
+keybind = cmd+w=close_surface
+keybind = cmd+shift+right=next_tab
+keybind = cmd+shift+left=previous_tab
