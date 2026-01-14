@@ -109,6 +109,11 @@
       system.defaults.dock.magnification = false;
       system.defaults.dock.autohide-time-modifier = 0.5;
       system.defaults.spaces.spans-displays = false;
+
+      # fonts
+      fonts.packages = with pkgs; [
+        maple-mono.truetype
+      ];
     };
   in {
     darwinConfigurations.kpm = nix-darwin.lib.darwinSystem {
