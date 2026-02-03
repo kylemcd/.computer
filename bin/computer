@@ -1,0 +1,42 @@
+#!/usr/bin/env bash
+
+set -euo pipefail
+
+REPO_ROOT="${HOME}/.computer"
+SCRIPTS_DIR="${REPO_ROOT}/scripts"
+
+usage() {
+  cat <<EOF
+Usage: computer <command>
+
+Commands:
+  init      Install Homebrew and dependencies
+  install   Install packages and stow configs
+  upgrade   Upgrade all Homebrew packages
+  os        Apply macOS settings and login items
+  help      Show this help message
+EOF
+}
+
+case "${1:-}" in
+  init)
+    exec "${SCRIPTS_DIR}/init.sh"
+    ;;
+  install)
+    exec "${SCRIPTS_DIR}/install.sh"
+    ;;
+  upgrade)
+    exec "${SCRIPTS_DIR}/upgrade.sh"
+    ;;
+  os)
+    exec "${SCRIPTS_DIR}/os.sh"
+    ;;
+  help|--help|-h|"")
+    usage
+    ;;
+  *)
+    echo "Unknown command: $1" >&2
+    usage
+    exit 1
+    ;;
+esac
