@@ -13,6 +13,7 @@ Commands:
   init      Install Homebrew and dependencies
   install   Install packages and stow configs
   upgrade   Upgrade all Homebrew packages
+  pull      Pull down and install latest from GitHub
   os        Apply macOS settings and login items
   help      Show this help message
 EOF
@@ -27,6 +28,9 @@ case "${1:-}" in
     ;;
   upgrade)
     exec "${SCRIPTS_DIR}/upgrade.sh"
+    ;;
+  pull)
+    exec "${SCRIPTS_DIR}/pull.sh"
     ;;
   os)
     exec "${SCRIPTS_DIR}/os.sh"

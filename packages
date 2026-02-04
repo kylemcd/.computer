@@ -1,4 +1,5 @@
 tap "oven-sh/bun"
+tap "withgraphite/tap"
 
 brew "asdf"
 brew "gh"
