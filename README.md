@@ -34,8 +34,9 @@ computer install   # just packages + stow
 
 ```bash
 computer init      # install Homebrew, then run install
-computer install   # install packages & stow configs
+computer install   # install packages, stow configs, apply macOS settings
 computer upgrade   # upgrade all Homebrew packages
+computer pull      # git pull, then run install
 computer os        # apply macOS settings & login items
 computer help      # show help
 ```

@@ -53,7 +53,3 @@ fi
 # Run install
 log "Running install..."
 "${SCRIPT_DIR}/install.sh"
-
-# Apply macOS settings
-log "Applying macOS settings..."
-"${SCRIPT_DIR}/os.sh"

@@ -22,34 +22,24 @@ if ! command -v stow >/dev/null 2>&1; then
   err "stow not found. It should have been installed by brew bundle."
 fi
 
-# Install oh-my-zsh
-if [[ ! -d "${HOME}/.oh-my-zsh" ]]; then
-  log "Installing oh-my-zsh..."
-  RUNZSH=no KEEP_ZSHRC=yes sh -c "$(curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh)"
-else
-  log "oh-my-zsh already installed."
-fi
+source "${REPO_ROOT}/scripts/dotfiles.sh"
 
-# Stow .config packages into ~/.config
-log "Stowing configs..."
-mkdir -p "${HOME}/.config"
+dotfiles_install_oh_my_zsh
 
-CONFIG_PACKAGES=(aerospace ghostty nvim zsh)
-for pkg in "${CONFIG_PACKAGES[@]}"; do
-  if [[ -d "${REPO_ROOT}/.config/${pkg}" ]]; then
-    log "  ~/.config/${pkg}"
-    stow --dir="${REPO_ROOT}/.config" --target="${HOME}/.config" --restow "${pkg}" || warn "Failed to stow ${pkg}"
-  fi
-done
-
-# Stow .zshrc into $HOME
-if [[ -d "${REPO_ROOT}/.config/zsh-root" ]]; then
-  log "  ~/.zshrc"
-  stow --dir="${REPO_ROOT}/.config" --target="${HOME}" --restow zsh-root || warn "Failed to stow zsh-root"
+if ! dotfiles_stow; then
+  err "Stow failed. Fix the errors above and re-run."
 fi
 
 # Git config
 log "Configuring git..."
 git config --global credential.helper osxkeychain
+
+# Apply macOS settings
+if [[ "$(uname)" == "Darwin" ]]; then
+  log "Applying macOS settings..."
+  "${REPO_ROOT}/scripts/os.sh"
+else
+  log "Skipping OS settings (non-macOS)."
+fi
 
 log "Done!"
