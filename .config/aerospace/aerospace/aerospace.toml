@@ -44,6 +44,7 @@ default-root-container-orientation = 'horizontal'
     alt-7 = 'workspace 7'
     alt-8 = 'workspace 8'
     alt-9 = 'workspace 9'
+    alt-q = 'workspace q'
 
     alt-shift-1 = 'move-node-to-workspace 1 --focus-follows-window'
     alt-shift-2 = 'move-node-to-workspace 2 --focus-follows-window'
@@ -54,6 +55,7 @@ default-root-container-orientation = 'horizontal'
     alt-shift-7 = 'move-node-to-workspace 7 --focus-follows-window'
     alt-shift-8 = 'move-node-to-workspace 8 --focus-follows-window'
     alt-shift-9 = 'move-node-to-workspace 9 --focus-follows-window'
+    alt-shift-q = 'move-node-to-workspace q --focus-follows-window'
 
     alt-b = 'exec-and-forget open -a "Firefox"'
     alt-c = 'exec-and-forget open -a "Cursor"'
@@ -72,7 +74,7 @@ default-root-container-orientation = 'horizontal'
     alt-shift-r = 'exec-and-forget ~/.config/aerospace/focus-and-move.sh "Reminders"'
 
 [workspace-to-monitor-force-assignment]
-    9 = 'secondary'
+    q = 'secondary'
 
 [[on-window-detected]]
 if.app-name-regex-substring = '1Password'
