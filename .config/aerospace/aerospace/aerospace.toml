@@ -93,17 +93,46 @@ if.app-name-regex-substring = 'Music'
 run = 'layout floating'
 
 [[on-window-detected]]
+if.app-name-regex-substring = 'Manet'
+run = 'layout floating'
+
+[[on-window-detected]]
 if.app-name-regex-substring = 'Reminders'
 run = 'layout floating'
+
+[[on-window-detected]]
+if.app-name-regex-substring = 'Cursor'
+run = 'move-node-to-workspace 1'
+
+[[on-window-detected]]
+if.app-name-regex-substring = 'Firefox'
+run = 'move-node-to-workspace 2'
+
+[[on-window-detected]]
+if.app-name-regex-substring = 'Linear'
+run = 'move-node-to-workspace 3'
+
+[[on-window-detected]]
+if.app-name-regex-substring = 'GitHub Desktop'
+run = 'move-node-to-workspace 4'
+
+[[on-window-detected]]
+if.app-name-regex-substring = 'Solo'
+run = 'move-node-to-workspace 5'
+
+[[on-window-detected]]
+if.app-name-regex-substring = 'Notion'
+run = 'move-node-to-workspace 6'
+
+[[on-window-detected]]
+if.app-name-regex-substring = 'Mail'
+run = 'move-node-to-workspace 7'
+
+[[on-window-detected]]
+if.app-name-regex-substring = 'Zoom'
+run = 'move-node-to-workspace 8'
 
 [[on-window-detected]]
 if.app-name-regex-substring = 'Slack'
 run = 'move-node-to-workspace 9'
 
-[[on-window-detected]]
-if.app-name-regex-substring = 'Granola'
-run = 'move-node-to-workspace 8'
-
-[[on-window-detected]]
-if.app-name-regex-substring = 'Zoom'
-run = 'move-node-to-workspace 8'
