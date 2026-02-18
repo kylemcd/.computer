@@ -22,117 +22,106 @@ default-root-container-orientation = 'horizontal'
     alt-comma = 'layout accordion horizontal vertical'
     alt-tab = 'workspace-back-and-forth'
 
-    alt-h = 'focus left'
-    alt-j = 'focus down'
-    alt-k = 'focus up'
-    alt-l = 'focus right'
-
-    alt-shift-h = 'move left'
-    alt-shift-j = 'move down'
-    alt-shift-k = 'move up'
-    alt-shift-l = 'move right'
-
     alt-minus = 'resize smart -50'
     alt-equal = 'resize smart +50'
 
-    alt-1 = 'workspace 1'
-    alt-2 = 'workspace 2'
-    alt-3 = 'workspace 3'
-    alt-4 = 'workspace 4'
-    alt-5 = 'workspace 5'
-    alt-6 = 'workspace 6'
-    alt-7 = 'workspace 7'
-    alt-8 = 'workspace 8'
-    alt-9 = 'workspace 9'
-    alt-q = 'workspace q'
+    # Go to workspace
+    alt-c = 'workspace c' # Code editor
+    alt-s = 'workspace s' # Slack
+    alt-g = 'workspace g' # GitHub Desktop
+    alt-l = 'workspace l' # Linear
+    alt-b = 'workspace b' # Web browser
+    alt-p = 'workspace p' # Password manager
+    alt-n = 'workspace n' # Notion
+    alt-z = 'workspace z' # Zoom
+    alt-t = 'workspace t' # Terminal
+    alt-e = 'workspace e' # Mail
+    alt-a = 'workspace a' # ChatGPT
+    alt-m = 'workspace m' # Messages
+    alt-f = 'workspace f' # Finder
+    alt-w = 'workspace w' # Calendar (w = when)
+    alt-r = 'workspace r' # Reminders 
+    alt-j = 'workspace j' # Manet (j = jams)  
 
-    alt-shift-1 = 'move-node-to-workspace 1 --focus-follows-window'
-    alt-shift-2 = 'move-node-to-workspace 2 --focus-follows-window'
-    alt-shift-3 = 'move-node-to-workspace 3 --focus-follows-window'
-    alt-shift-4 = 'move-node-to-workspace 4 --focus-follows-window'
-    alt-shift-5 = 'move-node-to-workspace 5 --focus-follows-window'
-    alt-shift-6 = 'move-node-to-workspace 6 --focus-follows-window'
-    alt-shift-7 = 'move-node-to-workspace 7 --focus-follows-window'
-    alt-shift-8 = 'move-node-to-workspace 8 --focus-follows-window'
-    alt-shift-9 = 'move-node-to-workspace 9 --focus-follows-window'
-    alt-shift-q = 'move-node-to-workspace q --focus-follows-window'
-
-    alt-b = 'exec-and-forget open -a "Firefox"'
-    alt-c = 'exec-and-forget open -a "Cursor"'
-    alt-e = 'exec-and-forget open -a "Mail"'
-    alt-i = 'exec-and-forget open -a "Linear"'
-    alt-m = 'exec-and-forget open -a "Music"'
-    alt-n = 'exec-and-forget open -a "Notion"'
-    alt-o = 'exec-and-forget open -a "Obsidian"'
-    alt-s = 'exec-and-forget open -a "Slack"'
-    alt-t = 'exec-and-forget open -a "iTerm"'
+    # Open app in workspace
+    alt-shift-c = 'exec-and-forget open -a "Cursor"'
+    alt-shift-s = 'exec-and-forget open -a "Slack"'
+    alt-shift-g = 'exec-and-forget open -a "GitHub Desktop"'
+    alt-shift-l = 'exec-and-forget open -a "Linear"'
+    alt-shift-b = 'exec-and-forget open -a "Firefox"'
+    alt-shift-p = 'exec-and-forget open -a "1Password"'
+    alt-shift-n = 'exec-and-forget open -a "Notion"'
+    alt-shift-z = 'exec-and-forget open -a "Zoom"'
+    alt-shift-t = 'exec-and-forget open -a "Ghostty"'
+    alt-shift-e = 'exec-and-forget open -a "Mail"'
     alt-shift-a = 'exec-and-forget open -a "ChatGPT"'
-    alt-shift-c = 'exec-and-forget ~/.config/aerospace/focus-and-move.sh "Calendar"'
-    alt-shift-m = 'exec-and-forget ~/.config/aerospace/focus-and-move.sh "Manet"'
-    alt-shift-p = 'exec-and-forget ~/.config/aerospace/focus-and-move.sh "1Password"'
-    alt-shift-t = 'exec-and-forget ~/.config/aerospace/focus-and-move.sh "Messages"'
-    alt-shift-r = 'exec-and-forget ~/.config/aerospace/focus-and-move.sh "Reminders"'
+    alt-shift-m = 'exec-and-forget open -a "Messages"'
+    alt-shift-f = 'exec-and-forget open -a "Finder"'
+    alt-shift-w = 'exec-and-forget open -a "Calendar"'
+    alt-shift-r = 'exec-and-forget open -a "Reminders"'
+    alt-shift-j = 'exec-and-forget open -a "Manet"'
 
-[workspace-to-monitor-force-assignment]
-    q = 'secondary'
-
-[[on-window-detected]]
-if.app-name-regex-substring = '1Password'
-run = 'layout floating'
-
-[[on-window-detected]]
-if.app-name-regex-substring = 'Calendar'
-run = 'layout floating'
-
-[[on-window-detected]]
-if.app-name-regex-substring = 'Messages'
-run = 'layout floating'
-
-[[on-window-detected]]
-if.app-name-regex-substring = 'Music'
-run = 'layout floating'
-
-[[on-window-detected]]
-if.app-name-regex-substring = 'Manet'
-run = 'layout floating'
-
-[[on-window-detected]]
-if.app-name-regex-substring = 'Reminders'
-run = 'layout floating'
-
+# Automatically move window to workspace
 [[on-window-detected]]
 if.app-name-regex-substring = 'Cursor'
-run = 'move-node-to-workspace 1'
-
-[[on-window-detected]]
-if.app-name-regex-substring = 'Firefox'
-run = 'move-node-to-workspace 2'
-
-[[on-window-detected]]
-if.app-name-regex-substring = 'Linear'
-run = 'move-node-to-workspace 3'
-
-[[on-window-detected]]
-if.app-name-regex-substring = 'GitHub Desktop'
-run = 'move-node-to-workspace 4'
-
-[[on-window-detected]]
-if.app-name-regex-substring = 'Solo'
-run = 'move-node-to-workspace 5'
-
-[[on-window-detected]]
-if.app-name-regex-substring = 'Notion'
-run = 'move-node-to-workspace 6'
-
-[[on-window-detected]]
-if.app-name-regex-substring = 'Mail'
-run = 'move-node-to-workspace 7'
-
-[[on-window-detected]]
-if.app-name-regex-substring = 'Zoom'
-run = 'move-node-to-workspace 8'
+run = 'move-node-to-workspace c'
 
 [[on-window-detected]]
 if.app-name-regex-substring = 'Slack'
-run = 'move-node-to-workspace 9'
+run = 'move-node-to-workspace s'
 
+[[on-window-detected]]
+if.app-name-regex-substring = 'GitHub Desktop'
+run = 'move-node-to-workspace g'
+
+[[on-window-detected]]
+if.app-name-regex-substring = 'Linear'
+run = 'move-node-to-workspace l'
+
+[[on-window-detected]]
+if.app-name-regex-substring = 'Firefox'
+run = 'move-node-to-workspace b'
+
+[[on-window-detected]]
+if.app-name-regex-substring = '1Password'
+run = 'move-node-to-workspace p'
+
+[[on-window-detected]]
+if.app-name-regex-substring = 'Notion'
+run = 'move-node-to-workspace n'
+
+[[on-window-detected]]
+if.app-name-regex-substring = 'Zoom'
+run = 'move-node-to-workspace z'
+
+[[on-window-detected]]
+if.app-name-regex-substring = 'Ghostty'
+run = 'move-node-to-workspace t'
+
+[[on-window-detected]]
+if.app-name-regex-substring = 'Mail'
+run = 'move-node-to-workspace e'
+
+[[on-window-detected]]
+if.app-name-regex-substring = 'ChatGPT'
+run = 'move-node-to-workspace a'
+
+[[on-window-detected]]
+if.app-name-regex-substring = 'Messages'
+run = 'move-node-to-workspace m'
+
+[[on-window-detected]]
+if.app-name-regex-substring = 'Finder'
+run = 'move-node-to-workspace f'
+
+[[on-window-detected]]
+if.app-name-regex-substring = 'Calendar'
+run = 'move-node-to-workspace w'
+
+[[on-window-detected]]
+if.app-name-regex-substring = 'Reminders'
+run = 'move-node-to-workspace r'
+
+[[on-window-detected]]
+if.app-name-regex-substring = 'Manet'
+run = 'move-node-to-workspace j'
