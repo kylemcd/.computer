@@ -42,6 +42,7 @@ default-root-container-orientation = 'horizontal'
     alt-w = 'workspace w' # Calendar (w = when)
     alt-r = 'workspace r' # Reminders 
     alt-j = 'workspace j' # Manet (j = jams)  
+    alt-o = 'workspace o' # Obsidian  
 
     # Open app in workspace
     alt-shift-c = 'exec-and-forget open -a "Cursor"'
@@ -60,6 +61,7 @@ default-root-container-orientation = 'horizontal'
     alt-shift-w = 'exec-and-forget open -a "Calendar"'
     alt-shift-r = 'exec-and-forget open -a "Reminders"'
     alt-shift-j = 'exec-and-forget open -a "Manet"'
+    alt-shift-o = 'exec-and-forget open -a "Obsidian"'
 
 # Automatically move window to workspace
 [[on-window-detected]]
@@ -125,3 +127,7 @@ run = 'move-node-to-workspace r'
 [[on-window-detected]]
 if.app-name-regex-substring = 'Manet'
 run = 'move-node-to-workspace j'
+
+[[on-window-detected]]
+if.app-name-regex-substring = 'Obsidian'
+run = 'move-node-to-workspace o'
