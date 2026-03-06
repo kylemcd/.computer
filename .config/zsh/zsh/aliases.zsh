@@ -27,6 +27,7 @@ gtcs() {
 # tmux
 alias ts="tmux"
 alias tk="tmux kill-server"
+alias tl="tmux ls"
 
 # Save clipboard image to /tmp and print the path for use in OpenCode via @
 imgpaste() {
