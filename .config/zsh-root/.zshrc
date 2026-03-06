@@ -63,3 +63,8 @@ export PKG_CONFIG_PATH="${ASDF_ERLANG_OPENSSL_DIR}/lib/pkgconfig:${PKG_CONFIG_PA
 # ------------------------------------------------------------------------------
 [[ -f ~/.config/zsh/evals.zsh ]] && source ~/.config/zsh/evals.zsh
 [[ -f ~/.config/zsh/aliases.zsh ]] && source ~/.config/zsh/aliases.zsh
+
+# Added by LM Studio CLI (lms)
+export PATH="$PATH:/Users/kyle/.lmstudio/bin"
+# End of LM Studio CLI section
+
