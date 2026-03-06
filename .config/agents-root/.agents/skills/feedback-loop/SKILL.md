@@ -23,12 +23,20 @@ Before any loop, find or create the repro command. In an unfamiliar codebase:
 4. Search for test files near affected code: glob `**/*test*.*`, `**/*spec*.*`
 5. If no test exists, **write a minimal reproduction script or test first** — this is your first loop iteration
 
+## Tools
+
+Use the **agent-browser** skill (`npx agent-browser`) for UI/visual loops.
+It provides headless browser automation with screenshots, DOM snapshots,
+element inspection, and JavaScript evaluation — ideal for measuring visual
+output, inspecting computed styles, and verifying layout changes without
+manual browser interaction.
+
 ## Loop Selector
 
 | Signal | Loop type | Recipe |
 |---|---|---|
 | Failing tests, errors, type errors, regressions | Debugging | [loop-recipes.md#debugging](./references/loop-recipes.md) |
-| Visual output, animation, layout, rendering | UI/visual | [loop-recipes.md#uivisual](./references/loop-recipes.md) |
+| Visual output, animation, layout, rendering | UI/visual | [loop-recipes.md#uivisual](./references/loop-recipes.md) — use `agent-browser` |
 | Metrics drift, ETL, data quality | Data pipeline | [loop-recipes.md#data-pipeline](./references/loop-recipes.md) |
 | Build/compile errors, dependency issues | Debugging | Use build command as repro |
 
@@ -107,11 +115,34 @@ If a bug spans domains (e.g., visual symptom but root cause in data/logic):
 - Derive a text/assertion proxy from visual symptoms where possible (e.g., check computed styles, DOM structure, API response instead of screenshot)
 - Carry artifacts forward — repro command and observations transfer between loops
 
+## Browser Authentication
+
+When using `agent-browser` for a UI/visual loop and you hit a login or
+authentication screen:
+
+1. **Ask the user** how to authenticate. Provide a screenshot of the auth
+   screen so they can see what's needed. Common options:
+   - Supply a localStorage/sessionStorage key-value pair to inject
+   - Provide credentials for the agent to fill in the login form
+   - Use a session name that already has auth persisted
+     (`npx agent-browser --session-name <name> open <url>`)
+2. **Set localStorage/cookies before navigating** when the user supplies
+   tokens. Use `agent-browser open <url>` first (to set the origin), then
+   `agent-browser eval` to inject storage, then reload or navigate:
+   ```bash
+   npx agent-browser open <url>
+   npx agent-browser eval "localStorage.setItem('key', 'value')"
+   npx agent-browser open <url>   # reload with auth
+   ```
+3. **Do not guess credentials.** Always ask — never fabricate tokens or
+   attempt to bypass authentication.
+
 ## Escalation Triggers
 
 Stop and ask the user when:
 
 - Agent cannot execute measurement (no screenshot tool, no DB access, no metrics)
+- Agent hits an authentication/login screen in the browser (see above)
 - Fix requires changes outside agent scope (infra, permissions, external service)
 - 3 rescope attempts with no convergence
 - Measurement is subjective (visual "looks right", UX feel)
