@@ -68,3 +68,5 @@ export PKG_CONFIG_PATH="${ASDF_ERLANG_OPENSSL_DIR}/lib/pkgconfig:${PKG_CONFIG_PA
 export PATH="$PATH:/Users/kyle/.lmstudio/bin"
 # End of LM Studio CLI section
 
+# Editor for OpenCode
+export EDITOR=nvim

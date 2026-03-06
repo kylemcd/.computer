@@ -49,7 +49,7 @@ dotfiles_stow() {
     # shellcheck disable=SC2206
     config_packages=(${DOTFILES_CONFIG_PACKAGES})
   else
-    config_packages=(aerospace ghostty nvim zsh)
+    config_packages=(aerospace ghostty nvim opencode tmux zsh)
   fi
 
   local pkg
@@ -68,6 +68,15 @@ dotfiles_stow() {
     log "  ~/.zshrc"
     if ! stow --dir="${DOTFILES_REPO_ROOT}/.config" --target="${HOME}" --restow zsh-root; then
       warn "Failed to stow zsh-root"
+      stow_failed=1
+    fi
+  fi
+
+  # Stow ~/.agents into $HOME
+  if [[ -d "${DOTFILES_REPO_ROOT}/.config/agents-root" ]]; then
+    log "  ~/.agents"
+    if ! stow --dir="${DOTFILES_REPO_ROOT}/.config" --target="${HOME}" --restow agents-root; then
+      warn "Failed to stow agents-root"
       stow_failed=1
     fi
   fi
