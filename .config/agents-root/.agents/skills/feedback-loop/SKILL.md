@@ -124,6 +124,7 @@ authentication screen:
    screen so they can see what's needed. Common options:
    - Supply a localStorage/sessionStorage key-value pair to inject
    - Provide credentials for the agent to fill in the login form
+   - Load a saved browser state file (`agent-browser state load <file>`)
    - Use a session name that already has auth persisted
      (`npx agent-browser --session-name <name> open <url>`)
 2. **Set localStorage/cookies before navigating** when the user supplies
