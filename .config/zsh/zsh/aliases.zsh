@@ -20,9 +20,28 @@ gtc() {
     gt modify --commit -m "$*"
 }
 alias gts="gt submit"
+# commit and submit
 gtcs() {
     gt modify --commit -m "$*" && gt submit
 }
+# add all and commit and submit
+gtacs() {
+    gt add . && gt modify --commit -m "$*" && gt submit
+}
+
+# git
+alias ga="git add ."
+unalias gc 2>/dev/null
+gc() {
+    git commit -m "$*"
+}
+alias gp="git push"
+gacp() {
+    git add . && git commit -m "$*" && git push
+}
+
+
+
 
 # tmux
 alias ts="tmux"
