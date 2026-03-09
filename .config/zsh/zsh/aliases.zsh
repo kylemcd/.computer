@@ -36,12 +36,13 @@ gc() {
     git commit -m "$*"
 }
 alias gp="git push"
+# add and commit and push
 gacp() {
     git add . && git commit -m "$*" && git push
 }
 
-
-
+# opencode
+alias oc="opencode"
 
 # tmux
 alias ts="tmux"
