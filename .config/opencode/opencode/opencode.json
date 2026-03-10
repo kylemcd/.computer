@@ -4,7 +4,11 @@
     "Figma": {
       "type": "remote",
       "url": "https://mcp.figma.com/mcp",
-      "enabled": true
+      "enabled": true,
+      "oauth": {
+        "clientId": "{env:FIGMA_MCP_CLIENT_ID}",
+        "clientSecret": "{env:FIGMA_MCP_CLIENT_SECRET}"
+      }
     },
     "Linear": {
       "type": "local",
