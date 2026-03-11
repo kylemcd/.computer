@@ -1,0 +1,2 @@
+[alias]
+	d = !~/.bun/bin/critique

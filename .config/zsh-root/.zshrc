@@ -3,7 +3,7 @@
 # ------------------------------------------------------------------------------
 # PATH
 # ------------------------------------------------------------------------------
-export PATH="${HOME}/.computer/bin:${PATH}"
+export PATH="${HOME}/.computer/bin:${HOME}/.bun/bin:${PATH}"
 
 # Homebrew
 if [[ -x /opt/homebrew/bin/brew ]]; then

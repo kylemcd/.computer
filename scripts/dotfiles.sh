@@ -63,6 +63,15 @@ dotfiles_stow() {
     fi
   done
 
+  # Stow .gitconfig into $HOME
+  if [[ -d "${DOTFILES_REPO_ROOT}/.config/git-root" ]]; then
+    log "  ~/.gitconfig-computer"
+    if ! stow --dir="${DOTFILES_REPO_ROOT}/.config" --target="${HOME}" --restow git-root; then
+      warn "Failed to stow git-root"
+      stow_failed=1
+    fi
+  fi
+
   # Stow .zshrc into $HOME
   if [[ -d "${DOTFILES_REPO_ROOT}/.config/zsh-root" ]]; then
     log "  ~/.zshrc"

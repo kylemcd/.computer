@@ -30,9 +30,24 @@ if ! dotfiles_stow; then
   err "Stow failed. Fix the errors above and re-run."
 fi
 
+# Install bun global packages
+if command -v bun >/dev/null 2>&1; then
+  log "Installing bun global packages..."
+  while IFS= read -r pkg || [[ -n "$pkg" ]]; do
+    [[ -z "$pkg" || "$pkg" == \#* ]] && continue
+    bun install -g "$pkg"
+  done < "${REPO_ROOT}/bun-packages"
+else
+  warn "bun not found, skipping global bun packages."
+fi
+
 # Git config
 log "Configuring git..."
 git config --global credential.helper osxkeychain
+if ! grep -qF 'gitconfig-computer' "${HOME}/.gitconfig" 2>/dev/null; then
+  log "Adding gitconfig-computer include..."
+  git config --global include.path '~/.gitconfig-computer'
+fi
 
 # Apply macOS settings
 if [[ "$(uname)" == "Darwin" ]]; then
