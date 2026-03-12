@@ -10,6 +10,7 @@ alias diff:main='critique main'
 
 # agent changes review
 alias ar="tuicr"
+alias ar:main="tuicr -r main..HEAD"
 
 # gh pr review
 alias pr="gh dash"
