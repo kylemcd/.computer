@@ -41,6 +41,21 @@ else
   warn "bun not found, skipping global bun packages."
 fi
 
+# Install gh extensions
+if command -v gh >/dev/null 2>&1; then
+  log "Installing gh extensions..."
+  while IFS= read -r ext || [[ -n "$ext" ]]; do
+    [[ -z "$ext" || "$ext" == \#* ]] && continue
+    if gh extension list | grep -qF "${ext##*/}"; then
+      log "  ${ext} already installed"
+    else
+      gh extension install "$ext"
+    fi
+  done < "${REPO_ROOT}/gh-extensions"
+else
+  warn "gh not found, skipping gh extensions."
+fi
+
 # Git config
 log "Configuring git..."
 git config --global credential.helper osxkeychain

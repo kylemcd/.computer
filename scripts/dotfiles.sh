@@ -49,7 +49,7 @@ dotfiles_stow() {
     # shellcheck disable=SC2206
     config_packages=(${DOTFILES_CONFIG_PACKAGES})
   else
-    config_packages=(aerospace ghostty nvim opencode tmux zsh)
+    config_packages=(aerospace ghostty gh-dash nvim opencode tmux tuicr zsh)
   fi
 
   local pkg

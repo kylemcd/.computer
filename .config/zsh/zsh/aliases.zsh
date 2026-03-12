@@ -8,6 +8,12 @@ alias gs='git status'
 alias diff='critique'
 alias diff:main='critique main'
 
+# agent changes review
+alias ar="tuicr"
+
+# gh pr review
+alias pr="gh dash"
+
 # zoxide
 alias cd='z'
 
