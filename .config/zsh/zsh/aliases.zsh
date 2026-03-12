@@ -6,6 +6,7 @@ alias vi="nvim"
 # git
 alias gs='git status'
 alias diff='critique'
+alias diff:main='critique main'
 
 # zoxide
 alias cd='z'
