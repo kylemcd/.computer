@@ -70,3 +70,6 @@ imgpaste() {
     close access fileRef
   " 2>/dev/null && echo "$dest" || echo "No image in clipboard"
 }
+
+# kill the port number
+kp() { lsof -ti :$1 | xargs kill -9; }
