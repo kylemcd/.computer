@@ -37,6 +37,7 @@ gtcs() {
 gtacs() {
     gt add . && gt modify --commit -m "$*" && gt submit
 }
+alias gtms="gt checkout main && gt sync"
 
 # git
 alias ga="git add ."
@@ -49,6 +50,7 @@ alias gp="git push"
 gacp() {
     git add . && git commit -m "$*" && git push
 }
+alias gcm="git checkout main"
 
 # opencode
 alias oc="opencode"
