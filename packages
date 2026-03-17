@@ -21,6 +21,7 @@ brew "zsh-syntax-highlighting"
 
 cask "1password"
 cask "chatgpt"
+cask "conductor"
 cask "cursor"
 cask "firefox"
 cask "font-maple-mono"

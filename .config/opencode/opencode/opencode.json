@@ -26,9 +26,11 @@
       "models": {
         "qwen/qwen3.5-9b": {
           "name": "qwen/qwen3.5-9b (local)"
+        },
+        "qwen/qwen2.5-coder-7b-instruct": {
+          "name": "qwen/qwen2.5-coder-7b-instruct (local)"
         }
       }
     }
   }
 }
-
