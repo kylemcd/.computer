@@ -1,57 +1,69 @@
 {
   "$schema": "https://raw.githubusercontent.com/JanDeDobbeleer/oh-my-posh/main/themes/schema.json",
-  "version": 3,
   "blocks": [
     {
-      "type": "prompt",
       "alignment": "left",
       "segments": [
         {
-          "type": "session",
-          "style": "plain",
-          "foreground": "#486e6f",
-          "template": "\ueb99 {{ .UserName }} on"
+          "template": "\n",
+          "type": "session"
         },
         {
-          "type": "path",
+          "background": "#79241f",
+          "foreground": "#f8f7f2",
+          "leading_diamond": "",
+          "style": "diamond",
+          "template": "{{ .UserName }} ",
+          "type": "session"
+        },
+        {
+          "background": "#c1c1c1",
+          "foreground": "#000000",
+          "options": {
+            "style": "folder"
+          },
           "style": "plain",
+          "template": " {{ .Path }} ",
+          "type": "path"
+        },
+        {
+          "background": "#5f8787",
+          "foreground": "#f8f7f2",
+          "options": {
+            "branch_icon": ""
+          },
+          "style": "plain",
+          "template": " git({{ .HEAD }}) ",
+          "type": "git"
+        },
+        {
+          "background": "#404040",
           "foreground": "#c1c1c1",
-          "properties": {
-            "folder_separator_icon": "/",
-            "style": "full"
+          "options": {
+            "time_format": "3:04 PM"
           },
-          "template": " \uf07b {{ .Path }} "
-        },
-        {
-          "type": "git",
-          "style": "plain",
-          "foreground": "#dd9999",
-          "powerline_symbol": "\ue0b0",
-          "properties": {
-            "fetch_upstream_icon": true
-          },
-          "template": "{{ .UpstreamIcon }}{{ .HEAD }}{{ if gt .StashCount 0 }} \ueb4b {{ .StashCount }}{{ end }} "
+          "style": "diamond",
+          "template": " {{ .CurrentDate | date .Format }}",
+          "trailing_diamond": "",
+          "type": "time"
         }
-      ]
+      ],
+      "type": "prompt"
     },
     {
-      "type": "prompt",
       "alignment": "left",
       "newline": true,
       "segments": [
         {
-          "type": "root",
-          "style": "plain",
-          "foreground": "#dd9999",
-          "template": "\ue3bf "
-        },
-        {
-          "type": "text",
-          "style": "plain",
           "foreground": "#c1c1c1",
-          "template": "# "
+          "style": "plain",
+          "template": "❯",
+          "type": "text"
         }
-      ]
+      ],
+      "type": "prompt"
     }
-  ]
+  ],
+  "final_space": true,
+  "version": 4
 }
