@@ -9,13 +9,13 @@
         {
           "type": "session",
           "style": "plain",
-          "foreground": "#A7C080",
+          "foreground": "#486e6f",
           "template": "\ueb99 {{ .UserName }} on"
         },
         {
           "type": "path",
           "style": "plain",
-          "foreground": "#7FBBB3",
+          "foreground": "#c1c1c1",
           "properties": {
             "folder_separator_icon": "/",
             "style": "full"
@@ -25,7 +25,7 @@
         {
           "type": "git",
           "style": "plain",
-          "foreground": "#83C092",
+          "foreground": "#dd9999",
           "powerline_symbol": "\ue0b0",
           "properties": {
             "fetch_upstream_icon": true
@@ -42,13 +42,13 @@
         {
           "type": "root",
           "style": "plain",
-          "foreground": "#E67E80",
+          "foreground": "#dd9999",
           "template": "\ue3bf "
         },
         {
           "type": "text",
           "style": "plain",
-          "foreground": "#D699B6",
+          "foreground": "#c1c1c1",
           "template": "# "
         }
       ]

@@ -6,8 +6,6 @@ adjust-cell-height = 4%
 # --- Cursor ------------------------------------------------
 cursor-style       = block
 cursor-style-blink = false
-cursor-color       = #58a6ff
-cursor-text        = #000000
 
 # --- Scrollback --------------------------------------------
 # ~1 MiB of scrollback; tweak if you want more
@@ -32,31 +30,35 @@ macos-option-as-alt  = true
 window-step-resize   = true
 window-save-state    = always
 
-# --- Colors (GitHub Dark-ish) ------------------------------
-background = #000000
-foreground = #e6edf3
-
-selection-background = #264f78
-selection-foreground = #e6edf3
+# --- Colors  ------------------------------
 
 cursor-opacity = 1.0
+palette = 0=#000000
+palette = 1=#486e6f
+palette = 2=#dd9999
+palette = 3=#a06666
+palette = 4=#888888
+palette = 5=#999999
+palette = 6=#aaaaaa
+palette = 7=#c1c1c1
+palette = 8=#404040
+palette = 9=#486e6f
+palette = 10=#dd9999
+palette = 11=#a06666
+palette = 12=#888888
+palette = 13=#999999
+palette = 14=#aaaaaa
+palette = 15=#c1c1c1
+background = #000000
+foreground = #c1c1c1
+cursor-color = #c1c1c1
+cursor-text = #8e8e8e
+selection-background = #c1c1c1
+selection-foreground = #000000
 
-palette = 0=#484f58
-palette = 1=#ff7b72
-palette = 2=#7ee787
-palette = 3=#ffa657
-palette = 4=#79c0ff
-palette = 5=#d2a8ff
-palette = 6=#56d4dd
-palette = 7=#e6edf3
-palette = 8=#6e7681
-palette = 9=#ffa198
-palette = 10=#a5d6ff
-palette = 11=#ffb357
-palette = 12=#a5d6ff
-palette = 13=#e2b9ff
-palette = 14=#7ee8e8
-palette = 15=#f0f6fc
+window-padding-x = 4
+window-padding-y = 4
+window-padding-balance = true
 
 # --- Links -------------------------------------------------
 link-url       = true
