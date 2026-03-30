@@ -31,11 +31,11 @@ gtc() {
 alias gts="gt submit"
 # commit and submit
 gtcs() {
-    gt modify --commit -m "$*" && gt submit
+    gt modify --commit -m "$*" && gt ss
 }
 # add all and commit and submit
 gtacs() {
-    gt add . && gt modify --commit -m "$*" && gt submit
+    gt add . && gt modify --commit -m "$*" && gt ss
 }
 alias gtms="gt checkout main && gt sync"
 
