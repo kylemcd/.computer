@@ -1,0 +1,10 @@
+{
+  "suppressWhenFocused": false,
+  "notification": false,
+  "sounds": {
+    "permission": "/System/Library/Sounds/Ping.aiff",
+    "complete": "/System/Library/Sounds/Ping.aiff",
+    "error": "/System/Library/Sounds/Ping.aiff",
+    "question": "/System/Library/Sounds/Ping.aiff"
+  }
+}
