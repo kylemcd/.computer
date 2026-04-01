@@ -4,6 +4,7 @@ description: Address unresolved GitHub PR review threads — especially from Cur
 allowed-tools:
   - "Bash(gh *)"
   - "Bash(git *)"
+  - "Bash(gt *)"
   - "Bash(jq *)"
 ---
 
@@ -23,19 +24,22 @@ Automated tools like Cursor BugBot have high false-positive rates. The most impo
 gh pr view --json number,title,url,headRefName
 ```
 
-If there's no PR for the current branch, stop and tell the user.
+If there's no PR for the current branch, stop and tell the user. If there is one but it has zero unresolved review threads (after Step 2), tell the user "No unresolved review threads found on this PR." and stop.
 
 ---
 
 ## Step 2: Fetch unresolved review threads
 
-The REST API doesn't expose resolved status, so use GraphQL:
+The REST API doesn't expose resolved status, so use GraphQL. First get the owner, repo, and PR number, then interpolate them into the query:
 
 ```bash
-# Get owner/repo first
+# Get owner, repo, and PR number
 gh repo view --json owner,name
+gh pr view --json number
+```
 
-# Then fetch all review threads
+```bash
+# Fetch all review threads — substitute real values for OWNER, REPO, PR_NUMBER
 gh api graphql -f query='
 {
   repository(owner: "OWNER", name: "REPO") {
@@ -61,7 +65,7 @@ gh api graphql -f query='
 }'
 ```
 
-Filter to threads where `isResolved: false`. The first comment in each thread is the root issue to address.
+Filter to threads where `isResolved: false`. The first comment in each thread is the root issue to address. If there are none, stop and tell the user.
 
 Also grab top-level (issue-level) comments if relevant:
 
@@ -87,7 +91,7 @@ Before writing a single line of code, run through this for every unresolved thre
 
 ### What to do with each thread
 
-For comments that are clearly valid or clearly false positives, decide inline. For anything ambiguous or risky, use the `question` tool to ask the user before proceeding:
+For comments that are clearly valid or clearly false positives, decide inline. For anything ambiguous or risky, invoke the `question` tool to ask the user before proceeding. The `question` tool is a real tool call that presents selectable options in the UI — use it anywhere the skill calls for user input rather than asking in plain text:
 
 ```
 question: "Comment by @<author> on <file>:<line> — <one-line summary>. This looks ambiguous: <reason>. How should I handle it?"
@@ -100,35 +104,26 @@ options:
 | Situation | Action |
 |---|---|
 | Clear valid bug, not yet fixed | Fix it |
-| Valid bug but already fixed in a later commit | Skip — note this for the user, resolve the thread |
-| False positive / valid intentional code | Skip — explain why, resolve the thread |
+| Valid bug but already fixed in a later commit | Skip — ask user if they want a reply comment, then resolve |
+| False positive / valid intentional code | Skip — ask user if they want a reply comment, then resolve |
 | Ambiguous or risky fix | Use the `question` tool to ask the user |
 
 ---
 
-## Step 4: For each fix, gather context first
+## Step 4: Spawn a subagent per fix (in parallel)
 
-Before changing anything:
-
-- Read the full file at the referenced path (not just the diff hunk)
-- Search for similar patterns in the codebase to understand whether it's intentional
-- Check git blame/log for the affected lines to understand the history
-- For type or nullability issues, trace back to the type definitions
-
-The goal is to understand *why* the code is the way it is before deciding to change it.
-
----
-
-## Step 5: Spawn a subagent per fix (in parallel)
-
-For each comment triaged as a genuine fix (not a skip), spawn a subagent to apply it. Launch all fix subagents in the same turn so they run in parallel.
+For each comment triaged as a genuine fix (not a skip), spawn a subagent to apply it. Launch all fix subagents in the same turn so they run in parallel — do not gather context yourself first, let each subagent do its own context gathering for its specific fix.
 
 Each subagent should be given:
 - The comment body, file path, and line number
 - The diff hunk for context
 - The triage reasoning (why this was judged a real issue)
-- The instruction to make the **smallest correct change** that addresses the issue — nothing more
-- The instruction to output a summary of exactly what it changed
+- Instructions to:
+  - Read the full file at the referenced path (not just the diff hunk)
+  - Search for similar patterns in the codebase to understand intent
+  - Check git log for the affected lines to understand history
+  - Make the **smallest correct change** that addresses the issue — nothing more
+  - Output a summary of exactly what it changed
 
 Skipped comments (false positives, stale, ambiguous) do not get a subagent — handle those inline.
 
@@ -144,26 +139,49 @@ After all fix subagents have completed, run the project's lint, format, and buil
 2. `package.json` scripts (look for `lint`, `typecheck`, `build`, `test`)
 3. `Makefile`, `justfile`, or `Taskfile`
 
-Run whatever combination of checks is appropriate. If anything fails, fix it before presenting to the user.
+Run whatever combination of checks is appropriate. If anything fails, assess whether the failure is related to one of the fixes — if so, spawn a subagent to fix it, then re-run checks. If the failure appears unrelated to the fixes, flag it to the user and ask whether to proceed anyway or stop.
 
 ---
 
 ## Step 7: Present all fixes to the user
 
-Show a summary of everything — fixes applied and threads skipped — so the user can review at once:
+For each fix applied, output the diff as a fenced markdown diff block in your response — do not just run `git diff` raw. This ensures proper syntax highlighting in OpenCode, Cursor, and other UIs. Get the diff with:
 
-For each fix applied:
+```bash
+git diff HEAD <file>
+```
+
+Then render it in your response as a before/after pair with emoji markers and language-tagged code blocks for syntax highlighting:
+
+**🔴 Before:**
+```<language>
+<old code>
+```
+
+**🟢 After:**
+```<language>
+<new code>
+```
+
+Then present context and ask:
 
 ```
 Comment by @<author> on <file>:<line>
 Issue: <brief summary>
 Assessment: <why you judged this valid>
-Fix: <what was changed>
-
-<show the relevant diff>
 ```
 
-For each skipped thread:
+```
+question: "Does this fix look correct?"
+options:
+  - "Yes, looks good"
+  - "No, request changes"
+  - "Skip this fix"
+```
+
+If they request changes, ask them to describe what they want, apply the changes, show the updated diff, and ask again before moving on.
+
+For each skipped thread, show inline (no question needed):
 
 ```
 Comment by @<author> on <file>:<line>
@@ -171,16 +189,14 @@ Issue: <brief summary>
 Decision: SKIP — <reason>
 ```
 
-Use the `question` tool to get sign-off:
+Once all fixes have been individually approved, do a final summary confirmation using the `question` tool:
 
 ```
-question: "Do all of these look right?"
+question: "All fixes reviewed. Ready to commit and push?"
 options:
-  - "Yes, looks good"
+  - "Yes, proceed"
   - "No, I want to revisit something"
 ```
-
-If they want to revisit, ask which comment and handle it before proceeding.
 
 ---
 
@@ -241,7 +257,9 @@ gt submit --no-interactive
 
 ## Step 9: Resolve threads on GitHub
 
-After pushing, resolve each addressed thread using GraphQL (use the thread `id` node ID from Step 2):
+After pushing, resolve all threads. Use the thread `id` node ID from Step 2 for all GraphQL calls.
+
+For **fixed threads**, resolve immediately:
 
 ```bash
 gh api graphql -f query='
@@ -252,20 +270,40 @@ mutation {
 }'
 ```
 
-For false-positive threads, use the `question` tool to ask the user before resolving:
+For **false-positive and stale threads, use the `question` tool to ask the user before resolving:
 
 ```
-question: "Comment by @<author> on <file>:<line> is a false positive — <one-line reason>. Would you like to leave a comment explaining this before resolving the thread?"
+question: "Comment by @<author> on <file>:<line> is being skipped — <one-line reason>. Leave a reply on the thread explaining why before resolving?"
 options:
-  - "Yes, leave a comment explaining why"
+  - "Yes, leave a reply"
   - "No, just resolve it silently"
 ```
 
-If yes, post a reply with the explanation before resolving:
+If yes, post the reply first, then resolve:
 
 ```bash
+# Post reply
 gh api repos/{owner}/{repo}/pulls/{pr_number}/comments/{comment_id}/replies \
   -f body="Not a real issue — <explanation of why this is a false positive or already handled>"
+
+# Then resolve the thread
+gh api graphql -f query='
+mutation {
+  resolveReviewThread(input: {threadId: "THREAD_NODE_ID"}) {
+    thread { isResolved }
+  }
+}'
+```
+
+If no, resolve silently:
+
+```bash
+gh api graphql -f query='
+mutation {
+  resolveReviewThread(input: {threadId: "THREAD_NODE_ID"}) {
+    thread { isResolved }
+  }
+}'
 ```
 
 For top-level issue comments (which can't be "resolved"), reply with the relevant commit sha instead.
