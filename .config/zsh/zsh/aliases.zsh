@@ -51,6 +51,7 @@ gacp() {
     git add . && git commit -m "$*" && git push
 }
 alias gcm="git checkout main"
+alias gms="git checkout main && git pull"
 
 # opencode
 alias oc="opencode"
