@@ -39,12 +39,12 @@ gh pr view --json number
 ```
 
 ```bash
-# Fetch all review threads — substitute real values for OWNER, REPO, PR_NUMBER
+# Fetch only unresolved review threads — substitute real values for OWNER, REPO, PR_NUMBER
 gh api graphql -f query='
 {
   repository(owner: "OWNER", name: "REPO") {
     pullRequest(number: PR_NUMBER) {
-      reviewThreads(first: 100) {
+      reviewThreads(first: 100, filterBy: { isResolved: false }) {
         nodes {
           id
           isResolved
@@ -65,7 +65,7 @@ gh api graphql -f query='
 }'
 ```
 
-Filter to threads where `isResolved: false`. The first comment in each thread is the root issue to address. If there are none, stop and tell the user.
+The API returns only unresolved threads. The first comment in each thread is the root issue to address. If there are none, stop and tell the user.
 
 Also grab top-level (issue-level) comments if relevant:
 
@@ -202,13 +202,23 @@ options:
 
 ## Step 8: Commit and push
 
-After the user signs off, first check whether Graphite is available:
+After the user signs off, check for a cached Graphite availability result first to avoid re-running `which gt` every session:
 
 ```bash
-which gt
+cat /tmp/fix-pr-comments-gt-available 2>/dev/null
 ```
 
-If `gt` is not found, skip straight to plain git — don't ask. If `gt` is available, use the `question` tool to ask:
+If the cache file doesn't exist, run the check and cache the result:
+
+```bash
+if which gt > /dev/null 2>&1; then
+  echo "true" > /tmp/fix-pr-comments-gt-available
+else
+  echo "false" > /tmp/fix-pr-comments-gt-available
+fi
+```
+
+If `gt` is not available, skip straight to plain git — don't ask. If `gt` is available, use the `question` tool to ask:
 
 ```
 question: "Ready to push? Which tool should I use?"
@@ -247,7 +257,13 @@ gt modify -m "fix: <concise description>
 Addresses comment by @<author>: <one-line summary of the issue>"
 ```
 
-Then submit the stack:
+Then submit the full stack by default:
+
+```bash
+gt submit --no-interactive --stack
+```
+
+Only submit the current branch alone if the user explicitly asks for that:
 
 ```bash
 gt submit --no-interactive
