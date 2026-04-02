@@ -1,5 +1,7 @@
 start-at-login = true
 
+exec-on-workspace-change = ['/bin/bash', '-c', '$HOME/.config/aerospace/workspace-autolaunch.sh']
+
 enable-normalization-flatten-containers = true
 enable-normalization-opposite-orientation-for-nested-containers = true
 
@@ -25,6 +27,28 @@ default-root-container-orientation = 'horizontal'
     alt-minus = 'resize smart -50'
     alt-equal = 'resize smart +50'
 
+    # Go to numeric workspace
+    alt-1 = 'workspace 1'
+    alt-2 = 'workspace 2'
+    alt-3 = 'workspace 3'
+    alt-4 = 'workspace 4'
+    alt-5 = 'workspace 5'
+    alt-6 = 'workspace 6'
+    alt-7 = 'workspace 7'
+    alt-8 = 'workspace 8'
+    alt-9 = 'workspace 9'
+
+    # Move active window to numeric workspace
+    alt-shift-1 = 'move-node-to-workspace 1'
+    alt-shift-2 = 'move-node-to-workspace 2'
+    alt-shift-3 = 'move-node-to-workspace 3'
+    alt-shift-4 = 'move-node-to-workspace 4'
+    alt-shift-5 = 'move-node-to-workspace 5'
+    alt-shift-6 = 'move-node-to-workspace 6'
+    alt-shift-7 = 'move-node-to-workspace 7'
+    alt-shift-8 = 'move-node-to-workspace 8'
+    alt-shift-9 = 'move-node-to-workspace 9'
+
     # Go to workspace
     alt-c = 'workspace c' # Code editor
     alt-s = 'workspace s' # Slack
@@ -44,90 +68,90 @@ default-root-container-orientation = 'horizontal'
     alt-j = 'workspace j' # Manet (j = jams)  
     alt-o = 'workspace o' # Obsidian  
 
-    # Open app in workspace
-    alt-shift-c = 'exec-and-forget open -a "Cursor"'
-    alt-shift-s = 'exec-and-forget open -a "Slack"'
-    alt-shift-g = 'exec-and-forget open -a "GitHub Desktop"'
-    alt-shift-l = 'exec-and-forget open -a "Linear"'
-    alt-shift-b = 'exec-and-forget open -a "Firefox"'
-    alt-shift-p = 'exec-and-forget open -a "1Password"'
-    alt-shift-n = 'exec-and-forget open -a "Notion"'
-    alt-shift-z = 'exec-and-forget open -a "Zoom"'
-    alt-shift-t = 'exec-and-forget open -a "Ghostty"'
-    alt-shift-e = 'exec-and-forget open -a "Mail"'
-    alt-shift-a = 'exec-and-forget open -a "ChatGPT"'
-    alt-shift-m = 'exec-and-forget open -a "Messages"'
-    alt-shift-f = 'exec-and-forget open -a "Finder"'
-    alt-shift-w = 'exec-and-forget open -a "Calendar"'
-    alt-shift-r = 'exec-and-forget open -a "Reminders"'
-    alt-shift-j = 'exec-and-forget open -a "Manet"'
-    alt-shift-o = 'exec-and-forget open -a "Obsidian"'
+    # Move active window to workspace
+    alt-shift-c = 'move-node-to-workspace c'
+    alt-shift-s = 'move-node-to-workspace s'
+    alt-shift-g = 'move-node-to-workspace g'
+    alt-shift-l = 'move-node-to-workspace l'
+    alt-shift-b = 'move-node-to-workspace b'
+    alt-shift-p = 'move-node-to-workspace p'
+    alt-shift-n = 'move-node-to-workspace n'
+    alt-shift-z = 'move-node-to-workspace z'
+    alt-shift-t = 'move-node-to-workspace t'
+    alt-shift-e = 'move-node-to-workspace e'
+    alt-shift-a = 'move-node-to-workspace a'
+    alt-shift-m = 'move-node-to-workspace m'
+    alt-shift-f = 'move-node-to-workspace f'
+    alt-shift-w = 'move-node-to-workspace w'
+    alt-shift-r = 'move-node-to-workspace r'
+    alt-shift-j = 'move-node-to-workspace j'
+    alt-shift-o = 'move-node-to-workspace o'
 
-# Automatically move window to workspace
+# Automatically move window to workspace (using app-id for exact matching)
 [[on-window-detected]]
-if.app-name-regex-substring = 'Cursor'
+if.app-id = 'com.todesktop.230313mzl4w4u92' # Cursor
 run = 'move-node-to-workspace c'
 
 [[on-window-detected]]
-if.app-name-regex-substring = 'Slack'
+if.app-id = 'com.tinyspeck.slackmacgap' # Slack
 run = 'move-node-to-workspace s'
 
 [[on-window-detected]]
-if.app-name-regex-substring = 'GitHub Desktop'
+if.app-id = 'com.github.GitHubClient' # GitHub Desktop
 run = 'move-node-to-workspace g'
 
 [[on-window-detected]]
-if.app-name-regex-substring = 'Linear'
+if.app-id = 'com.linear' # Linear
 run = 'move-node-to-workspace l'
 
 [[on-window-detected]]
-if.app-name-regex-substring = 'Firefox'
+if.app-id = 'org.mozilla.firefox' # Firefox
 run = 'move-node-to-workspace b'
 
 [[on-window-detected]]
-if.app-name-regex-substring = '1Password'
+if.app-id = 'com.1password.1password' # 1Password
 run = 'move-node-to-workspace p'
 
 [[on-window-detected]]
-if.app-name-regex-substring = 'Notion'
+if.app-id = 'notion.id' # Notion
 run = 'move-node-to-workspace n'
 
 [[on-window-detected]]
-if.app-name-regex-substring = 'Zoom'
+if.app-id = 'us.zoom.xos' # Zoom
 run = 'move-node-to-workspace z'
 
 [[on-window-detected]]
-if.app-name-regex-substring = 'Ghostty'
+if.app-id = 'com.mitchellh.ghostty' # Ghostty
 run = 'move-node-to-workspace t'
 
 [[on-window-detected]]
-if.app-name-regex-substring = 'Mail'
+if.app-id = 'com.apple.mail' # Mail
 run = 'move-node-to-workspace e'
 
 [[on-window-detected]]
-if.app-name-regex-substring = 'ChatGPT'
+if.app-id = 'com.openai.chat' # ChatGPT
 run = 'move-node-to-workspace a'
 
 [[on-window-detected]]
-if.app-name-regex-substring = 'Messages'
+if.app-id = 'com.apple.MobileSMS' # Messages
 run = 'move-node-to-workspace m'
 
 [[on-window-detected]]
-if.app-name-regex-substring = 'Finder'
+if.app-id = 'com.apple.finder' # Finder
 run = 'move-node-to-workspace f'
 
 [[on-window-detected]]
-if.app-name-regex-substring = 'Calendar'
+if.app-id = 'com.apple.iCal' # Calendar
 run = 'move-node-to-workspace w'
 
 [[on-window-detected]]
-if.app-name-regex-substring = 'Reminders'
+if.app-id = 'com.apple.reminders' # Reminders
 run = 'move-node-to-workspace r'
 
 [[on-window-detected]]
-if.app-name-regex-substring = 'Manet'
+if.app-id = 'dev.tilo.Manet' # Manet
 run = 'move-node-to-workspace j'
 
 [[on-window-detected]]
-if.app-name-regex-substring = 'Obsidian'
+if.app-id = 'md.obsidian' # Obsidian
 run = 'move-node-to-workspace o'

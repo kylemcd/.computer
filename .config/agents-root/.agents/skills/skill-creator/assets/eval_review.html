@@ -60,6 +60,7 @@
   <p class="summary" id="summary"></p>
 
   <script>
+    const SKILL_NAME = '__SKILL_NAME_PLACEHOLDER__';
     const EVAL_DATA = __EVAL_DATA_PLACEHOLDER__;
 
     let evalItems = [...EVAL_DATA];
@@ -133,7 +134,7 @@
       const url = URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;
-      a.download = 'eval_set.json';
+      a.download = `eval_set_${SKILL_NAME}.json`;
       document.body.appendChild(a);
       a.click();
       document.body.removeChild(a);

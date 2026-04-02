@@ -79,3 +79,12 @@ keybind = ctrl+9=text:\x1br
 # Ctrl+T/W -> tmux window management (via Alt+letter sequences)
 keybind = ctrl+t=text:\x1bt
 keybind = ctrl+w=text:\x1bw
+
+# Ctrl+Shift+W -> close entire tmux window (tab + all panes)
+keybind = ctrl+shift+w=text:\x1bW
+
+# Ctrl+Shift+2..5 -> split pane at 1/N of window width
+keybind = ctrl+shift+2=text:\x1bB
+keybind = ctrl+shift+3=text:\x1bC
+keybind = ctrl+shift+4=text:\x1bD
+keybind = ctrl+shift+5=text:\x1bE

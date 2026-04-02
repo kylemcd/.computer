@@ -274,28 +274,32 @@ require("lazy").setup({
 	},
 	{
 		"nvim-treesitter/nvim-treesitter",
+		lazy = false,
 		build = ":TSUpdate",
-		event = { "BufReadPre", "BufNewFile" },
 		config = function()
-			require("nvim-treesitter.configs").setup({
-				ensure_installed = {
-					"lua",
-					"javascript",
-					"typescript",
-					"tsx",
-					"json",
-					"yaml",
-					"html",
-					"css",
-					"markdown",
-				},
-				auto_install = true,
-				highlight = {
-					enable = true,
-				},
-				indent = {
-					enable = true,
-				},
+			require("nvim-treesitter").setup()
+			require("nvim-treesitter").install({
+				"lua",
+				"javascript",
+				"typescript",
+				"tsx",
+				"json",
+				"yaml",
+				"html",
+				"css",
+				"markdown",
+				"bash",
+				"toml",
+				"elixir",
+				"erlang",
+				"rust",
+				"nix",
+			})
+			-- Treesitter highlighting is now built into neovim 0.12+
+			vim.api.nvim_create_autocmd("FileType", {
+				callback = function()
+					pcall(vim.treesitter.start)
+				end,
 			})
 		end,
 	},

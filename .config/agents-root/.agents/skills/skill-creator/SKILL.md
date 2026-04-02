@@ -368,7 +368,7 @@ Present the eval set to the user for review using the HTML template:
    - `__SKILL_DESCRIPTION_PLACEHOLDER__` → the skill's current description
 3. Write to a temp file (e.g., `/tmp/eval_review_<skill-name>.html`) and open it: `open /tmp/eval_review_<skill-name>.html`
 4. The user can edit queries, toggle should-trigger, add/remove entries, then click "Export Eval Set"
-5. The file downloads to `~/Downloads/eval_set.json` — check the Downloads folder for the most recent version in case there are multiple (e.g., `eval_set (1).json`)
+5. The file downloads to `~/Downloads/eval_set_<skill-name>.json` — check the Downloads folder for the most recent version in case there are multiple (e.g., `eval_set_my-skill (1).json`)
 
 This step matters — bad eval queries lead to bad descriptions.
 
