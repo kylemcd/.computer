@@ -202,29 +202,28 @@ options:
 
 ## Step 8: Commit and push
 
-After the user signs off, check for a cached Graphite availability result first to avoid re-running `which gt` every session:
+After the user signs off, check Graphite availability and read the last-used tool preference from git config:
 
 ```bash
-cat /tmp/fix-pr-comments-gt-available 2>/dev/null
+GT_AVAILABLE=$(which gt > /dev/null 2>&1 && echo "true" || echo "false")
+GT_PREFERENCE=$(git config --local fix-pr-comments.pushtool 2>/dev/null)
 ```
 
-If the cache file doesn't exist, run the check and cache the result:
+If `GT_AVAILABLE` is `false`, skip straight to plain git — don't ask.
 
-```bash
-if which gt > /dev/null 2>&1; then
-  echo "true" > /tmp/fix-pr-comments-gt-available
-else
-  echo "false" > /tmp/fix-pr-comments-gt-available
-fi
-```
-
-If `gt` is not available, skip straight to plain git — don't ask. If `gt` is available, use the `question` tool to ask:
+If `GT_AVAILABLE` is `true`, use the `question` tool to ask. Put the last-used tool first as the recommended option (defaulting to Graphite if no preference is stored yet):
 
 ```
 question: "Ready to push? Which tool should I use?"
 options:
-  - "Plain git"
-  - "Graphite (gt)"
+  - "Graphite (gt)" (recommended if GT_PREFERENCE is "gt" or unset)
+  - "Plain git" (recommended if GT_PREFERENCE is "git")
+```
+
+After the user picks, save their choice so it's recommended first next time:
+
+```bash
+git config --local fix-pr-comments.pushtool <git|gt>
 ```
 
 Use the answer to choose the right flow below. Never use `git add .` — stage only the files that belong to each individual fix.
