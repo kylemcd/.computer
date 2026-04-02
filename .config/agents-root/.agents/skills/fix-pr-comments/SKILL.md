@@ -39,12 +39,13 @@ gh pr view --json number
 ```
 
 ```bash
-# Fetch only unresolved review threads — substitute real values for OWNER, REPO, PR_NUMBER
+# Fetch all review threads then filter to unresolved — substitute real values for OWNER, REPO, PR_NUMBER
+# NOTE: GitHub's GraphQL API does NOT support filterBy on reviewThreads. Fetch all and filter with jq.
 gh api graphql -f query='
 {
   repository(owner: "OWNER", name: "REPO") {
     pullRequest(number: PR_NUMBER) {
-      reviewThreads(first: 100, filterBy: { isResolved: false }) {
+      reviewThreads(first: 100) {
         nodes {
           id
           isResolved
@@ -62,10 +63,10 @@ gh api graphql -f query='
       }
     }
   }
-}'
+}' | jq '.data.repository.pullRequest.reviewThreads.nodes | map(select(.isResolved == false))'
 ```
 
-The API returns only unresolved threads. The first comment in each thread is the root issue to address. If there are none, stop and tell the user.
+Filter unresolved threads client-side with `jq` since the API returns all threads. The first comment in each thread is the root issue to address. If there are none, stop and tell the user.
 
 Also grab top-level (issue-level) comments if relevant:
 
@@ -143,7 +144,9 @@ Run whatever combination of checks is appropriate. If anything fails, assess whe
 
 ---
 
-## Step 7: Present all fixes to the user
+## Step 7: Present all fixes and get sign-off
+
+Show all diffs together first, then ask one question to approve and push. Do not ask per-fix — gather the full picture first.
 
 For each fix applied, output the diff as a fenced markdown diff block in your response — do not just run `git diff` raw. This ensures proper syntax highlighting in OpenCode, Cursor, and other UIs. Get the diff with:
 
@@ -152,6 +155,10 @@ git diff HEAD <file>
 ```
 
 Then render it in your response as a before/after pair with emoji markers and language-tagged code blocks for syntax highlighting:
+
+**Comment by @\<author\> on \<file\>:\<line\>**
+Issue: \<brief summary\>
+Assessment: \<why you judged this valid\>
 
 **🔴 Before:**
 ```<language>
@@ -163,70 +170,42 @@ Then render it in your response as a before/after pair with emoji markers and la
 <new code>
 ```
 
-Then present context and ask:
+For each skipped thread, show inline below the fixes (no question needed):
 
 ```
-Comment by @<author> on <file>:<line>
-Issue: <brief summary>
-Assessment: <why you judged this valid>
+SKIP — Comment by @<author> on <file>:<line>: <one-line reason>
 ```
 
-```
-question: "Does this fix look correct?"
-options:
-  - "Yes, looks good"
-  - "No, request changes"
-  - "Skip this fix"
-```
-
-If they request changes, ask them to describe what they want, apply the changes, show the updated diff, and ask again before moving on.
-
-For each skipped thread, show inline (no question needed):
-
-```
-Comment by @<author> on <file>:<line>
-Issue: <brief summary>
-Decision: SKIP — <reason>
-```
-
-Once all fixes have been individually approved, do a final summary confirmation using the `question` tool:
-
-```
-question: "All fixes reviewed. Ready to commit and push?"
-options:
-  - "Yes, proceed"
-  - "No, I want to revisit something"
-```
-
----
-
-## Step 8: Commit and push
-
-After the user signs off, check Graphite availability and read the last-used tool preference from git config:
+After showing everything, check Graphite availability and the last-used tool preference:
 
 ```bash
 GT_AVAILABLE=$(which gt > /dev/null 2>&1 && echo "true" || echo "false")
 GT_PREFERENCE=$(git config --local fix-pr-comments.pushtool 2>/dev/null)
 ```
 
-If `GT_AVAILABLE` is `false`, skip straight to plain git — don't ask.
-
-If `GT_AVAILABLE` is `true`, use the `question` tool to ask. Put the last-used tool first as the recommended option (defaulting to Graphite if no preference is stored yet):
+Then ask a single question that combines approval and push method. If `GT_AVAILABLE` is `false`, omit the Graphite option entirely:
 
 ```
-question: "Ready to push? Which tool should I use?"
+question: "Do these fixes look correct?"
 options:
-  - "Graphite (gt)" (recommended if GT_PREFERENCE is "gt" or unset)
-  - "Plain git" (recommended if GT_PREFERENCE is "git")
+  - "Commit and push with Graphite" (recommended if GT_AVAILABLE and GT_PREFERENCE is "gt" or unset)
+  - "Commit and push with plain git" (recommended if GT_PREFERENCE is "git", or GT_AVAILABLE is false)
+  - "Request changes"
 ```
 
-After the user picks, save their choice so it's recommended first next time:
+If they request changes, ask them to describe what they want, apply the changes, re-show the updated diffs, and ask again.
+
+After the user picks a push method, save their choice so it's recommended first next time:
 
 ```bash
 git config --local fix-pr-comments.pushtool <git|gt>
 ```
 
 Use the answer to choose the right flow below. Never use `git add .` — stage only the files that belong to each individual fix.
+
+---
+
+## Step 8: Commit and push
 
 ### Plain git
 
@@ -285,16 +264,16 @@ mutation {
 }'
 ```
 
-For **false-positive and stale threads, use the `question` tool to ask the user before resolving:
+For **false-positive and stale threads**, if there are any skipped threads, ask once (not per thread) using the `question` tool:
 
 ```
-question: "Comment by @<author> on <file>:<line> is being skipped — <one-line reason>. Leave a reply on the thread explaining why before resolving?"
+question: "Leave a reply on skipped threads explaining why before resolving?"
 options:
-  - "Yes, leave a reply"
-  - "No, just resolve it silently"
+  - "Yes, reply then resolve"
+  - "No, just resolve silently"
 ```
 
-If yes, post the reply first, then resolve:
+If yes, post a reply on each skipped thread, then resolve:
 
 ```bash
 # Post reply
