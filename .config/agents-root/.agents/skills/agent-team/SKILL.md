@@ -32,6 +32,7 @@ A Project Manager (PM) agent coordinates a team of specialized subagents to plan
 | `agents/git-manager.md` | Final wave: commit split proposal, PR creation, push |
 | `agents/linear-manager.md` | Linear ticket creation, state updates, PR linking |
 | `agents/pr-reviewer.md` | On-demand: addresses review comments on task PRs |
+| `agents/researcher.md` | Codebase mapping, library research, API investigation — runs before design and on-demand during execution |
 
 **Bundled skills (all agents read `writing-style.md` before writing anything):**
 
@@ -58,6 +59,7 @@ When you begin a task, create a `.agent-team/` directory in the repository root.
 ├── change-log.md     ← file-level change history (Task Tracker maintains)
 ├── decisions.md      ← decisions log (PM writes, agents may append; architect writes design here)
 ├── blockers.md       ← questions & blockers (agents append here)
+├── research.md       ← researcher findings: codebase maps, library APIs, external docs
 ├── final-summary.md  ← written by Task Tracker at wrap-up
 └── after-action.md   ← PM-written agent grades and role improvement notes
 ```
@@ -127,6 +129,7 @@ Status key: ⏳ pending | 🔄 in progress | ✅ met | ❌ not met
 - [Change Log](.agent-team/change-log.md)
 - [Decisions](.agent-team/decisions.md)
 - [Blockers & Questions](.agent-team/blockers.md)
+- [Research](.agent-team/research.md)
 - [Final Summary](.agent-team/final-summary.md)
 - [After-Action Report](.agent-team/after-action.md)
 ```
@@ -193,6 +196,18 @@ Agents: append your questions or blockers below using this format.
 PM will review after each wave and resolve or escalate to the user.
 
 Format: **ROLE | TASK-ID | Wave N** — [question or blocker description]
+
+---
+```
+
+---
+
+### `.agent-team/research.md` — Researcher findings
+
+```markdown
+# Research
+
+Maintained by the researcher role. Each entry covers one question or topic.
 
 ---
 ```
@@ -354,6 +369,7 @@ Read the confirmed plan and decide:
 - `git-manager` — **always** assigned; runs in the final wave after all acceptance criteria are met
 - `linear-manager` — assigned when `linear-mode` is set in PLAN.md; runs in Wave 1 and at wrap-up
 - `task-tracker` — **always** runs after every wave; never assigned to a wave, always post-wave
+- `researcher` — assign in **Wave 1** whenever the task involves unfamiliar libraries, a large or poorly-understood codebase, external APIs, or significant unknowns that the architect needs answered before designing. Also spawn **on-demand during any wave** when an agent writes a blocker that is fundamentally an information gap (not a conflict or decision — just "I don't know how X works").
 - `pr-reviewer` — **on-demand only**; not pre-assigned during planning. The PM spawns it reactively when review feedback arrives on a task PR, potentially days after the task completed.
 
 **Wave planning — respect dependencies (this is a hard constraint, not a guideline):**
@@ -361,6 +377,7 @@ Read the confirmed plan and decide:
 If Agent B needs Agent A's output to do its work, A and B must be in different waves. A must complete first. Placing them in the same wave is a structural error — B will read stale context and produce incompatible work.
 
 Common dependency chains that must be respected:
+- Researcher → Architect (architect needs findings before designing — if researcher is assigned, it runs in Wave 1 and architect runs in Wave 2)
 - Architect → Software Engineer (engineer needs the design)
 - Software Engineer → Code Reviewer, QA Tester, Security Auditor (reviewers need the code)
 - All implementation → Integration Tester (needs interfaces to exist)
@@ -391,6 +408,7 @@ Each agent receives:
 - The full content of `.agent-team/change-log.md` (what has already been changed)
 - The full content of `.agent-team/blockers.md` (known issues)
 - The full content of `.agent-team/decisions.md` (architect design output and all prior decisions — **always include this from Wave 2 onwards**)
+- The full content of `.agent-team/research.md` if it exists (researcher findings about the codebase and libraries — always include when non-empty)
 - The content of their role file (read it and include it verbatim in their prompt)
 - Their specific task ID(s) for this wave
 - The list of available verification skills (see Verification section below)
