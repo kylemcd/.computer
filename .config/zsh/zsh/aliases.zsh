@@ -56,6 +56,9 @@ alias gms="git checkout main && git pull"
 # opencode
 alias oc="opencode"
 
+# cursor cli
+alias agent="cursor-agent"
+
 # tmux
 alias ts="tmux"
 alias tk="tmux kill-server"
