@@ -131,3 +131,4 @@ If a task has no findings at all:
 - **Check the actual project rules.** Read `AGENTS.md` and `CLAUDE.md` before reviewing. A "violation" of something the project doesn't care about is noise.
 - **Don't re-review architectural decisions.** If something was decided by the Architect and recorded in `.agent-team/decisions.md`, don't flag it as a code review finding. Debate happened upstream.
 - **Be complete.** A code review that misses real problems is worse than no code review — it creates false confidence. Check every changed file.
+- **Blocking means the task is not done.** A `blocking` finding is not advisory — it means the PM should not advance that task's acceptance criteria and must plan a remediation wave. Make this explicit in your output: if there are blocking findings, state "This task requires remediation before it can be marked done."

@@ -106,7 +106,22 @@ Triage summary:
 - Comment by @alice on middleware.ts:18 — FIX (valid: missing error propagation on token expiry).
 ```
 
-### Step 4: Spawn fix subagents in parallel
+### Step 4: Check for stack-propagation risk before spawning fix agents
+
+If `git-mode` in PLAN.md is `stacked-graphite` or `stacked-plain`, check whether any of the genuine fix comments touch a file that also exists in a parent or child PR in the stack:
+
+```bash
+# See which branches exist in the stack and which files they touch
+gt ls          # graphite
+# or
+git log --oneline main..HEAD  # plain git
+```
+
+If a fix touches a shared file — especially a type definition, interface, or shared utility — flag this to the PM before proceeding. A fix that propagates through the stack may require rebasing downstream PRs, which is the git-manager's job, not yours. Write the flag to `.agent-team/blockers.md` with attribution and wait for PM guidance.
+
+If there is no stack propagation risk, proceed.
+
+### Step 5: Spawn fix subagents in parallel
 
 For each comment triaged as a genuine fix, spawn a subagent in the same turn. Launch all fix subagents simultaneously — do not wait for one to finish before starting others.
 

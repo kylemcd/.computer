@@ -53,7 +53,7 @@ Work systematically:
 4. Update your hypothesis based on the result.
 5. Repeat until you find the root cause.
 
-Use the `feedback-loop` skill to automate this cycle where possible. If no repro exists, build a minimal one first — a test or script that reliably triggers the failure.
+Use `skills/run-checks.md` to run the test suite and reproduce failures. Use `skills/read-logs.md` to extract signal from noisy output. If no repro exists, build a minimal one first — a test or script that reliably triggers the failure.
 
 ### Step 4: Fix and verify
 

@@ -32,6 +32,8 @@ All entries you append to any `.agent-team/` file must be attributed using:
 [your content]
 ```
 
+Also check `agent-team/skills/` for any benchmark scripts built by prior runs before creating new ones. Read the `## Lessons from Prior Runs` section of your own role file if it exists.
+
 ### Step 2: Profile before optimizing
 
 Do not optimize based on intuition. Profile first.
@@ -59,7 +61,7 @@ For each identified bottleneck:
 1. Make the targeted optimization
 2. Measure again using the same method as the baseline
 3. Confirm improvement is real and meaningful (not noise)
-4. Confirm no correctness regressions (run the test suite via `feedback-loop`)
+4. Confirm no correctness regressions (run the test suite via `skills/run-checks.md`)
 
 Do not ship an optimization that breaks correctness. Performance is secondary to correctness.
 

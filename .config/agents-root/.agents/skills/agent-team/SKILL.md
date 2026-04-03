@@ -56,11 +56,13 @@ When you begin a task, create a `.agent-team/` directory in the repository root.
 ├── PLAN.md           ← index: goal, criteria, wave overview, links to all other files
 ├── tasks.md          ← full task table with IDs, statuses, roles, assignments
 ├── change-log.md     ← file-level change history (Task Tracker maintains)
-├── decisions.md      ← decisions log (PM writes, agents may append)
+├── decisions.md      ← decisions log (PM writes, agents may append; architect writes design here)
 ├── blockers.md       ← questions & blockers (agents append here)
 ├── final-summary.md  ← written by Task Tracker at wrap-up
 └── after-action.md   ← PM-written agent grades and role improvement notes
 ```
+
+The entire `.agent-team/` directory must be in `.gitignore` — these are internal planning files, not project artifacts. Add it at task start if not already excluded.
 
 Every agent prompt should reference these files explicitly and instruct the agent to read the ones relevant to its work before starting.
 
@@ -309,8 +311,32 @@ What's likely to break? What's unfamiliar territory in this codebase? What has d
 ### 5. Out of Scope
 What are we explicitly not doing? Getting this on paper prevents scope creep and helps agents stay focused.
 
+### 0. Check for an existing `.agent-team/` directory
+
+Before creating anything, check whether `.agent-team/` already exists in the repo root:
+
+```bash
+ls .agent-team/ 2>/dev/null
+```
+
+If it exists, ask the user:
+- **Continue the previous task** — read the existing files and resume from the last completed wave.
+- **Archive it** — rename to `.agent-team-YYYY-MM-DD/` and start fresh.
+- **Delete it** — start fresh, discarding prior work.
+
+Do not overwrite silently. An existing `.agent-team/` means a prior run happened and the user's intent must be confirmed.
+
 ### Show the plan and confirm
-After the interview, create the `.agent-team/` directory and write all plan files using the templates above. Start with `PLAN.md` (the index) and `tasks.md` — the others can be initialized as empty shells. Show the user `PLAN.md` and offer to adjust anything. Do not spawn any agents until the user approves the plan.
+
+After the interview, create the `.agent-team/` directory and write all plan files using the templates above. Start with `PLAN.md` (the index) and `tasks.md` — the others can be initialized as empty shells.
+
+Also add `.agent-team/` to `.gitignore` if not already present:
+
+```bash
+grep -q "^\.agent-team" .gitignore 2>/dev/null || echo ".agent-team/" >> .gitignore
+```
+
+Show the user `PLAN.md` and offer to adjust anything. Do not spawn any agents until the user approves the plan.
 
 ---
 
@@ -330,12 +356,20 @@ Read the confirmed plan and decide:
 - `task-tracker` — **always** runs after every wave; never assigned to a wave, always post-wave
 - `pr-reviewer` — **on-demand only**; not pre-assigned during planning. The PM spawns it reactively when review feedback arrives on a task PR, potentially days after the task completed.
 
-**Wave planning — respect dependencies:**
-- Wave 1 should contain only work that can start immediately (no dependencies on other Wave 1 work)
-- Later waves contain work that depends on earlier waves
-- The architect should generally run in Wave 1 on large tasks, before implementation begins
-- The Task Tracker always runs after each implementation wave (not in parallel with it)
-- Code review, QA, security audit typically run after implementation, not during
+**Wave planning — respect dependencies (this is a hard constraint, not a guideline):**
+
+If Agent B needs Agent A's output to do its work, A and B must be in different waves. A must complete first. Placing them in the same wave is a structural error — B will read stale context and produce incompatible work.
+
+Common dependency chains that must be respected:
+- Architect → Software Engineer (engineer needs the design)
+- Software Engineer → Code Reviewer, QA Tester, Security Auditor (reviewers need the code)
+- All implementation → Integration Tester (needs interfaces to exist)
+- DB migration → any code that uses the new schema
+- Dependency Manager → any code using the new dependency
+
+When in doubt, put the dependency in an earlier wave. The cost of an extra wave is low. The cost of two agents making conflicting structural decisions is high.
+
+The Task Tracker always runs after each implementation wave (not in parallel with it). Code review, QA, and security audit run after implementation, not during.
 
 **Assign task IDs** (TASK-001, TASK-002, ...) to every discrete unit of work. A task should be completable by one agent in one session — if it's too big, break it down.
 
@@ -356,15 +390,20 @@ Each agent receives:
 - The full content of `.agent-team/tasks.md` (their specific task IDs)
 - The full content of `.agent-team/change-log.md` (what has already been changed)
 - The full content of `.agent-team/blockers.md` (known issues)
+- The full content of `.agent-team/decisions.md` (architect design output and all prior decisions — **always include this from Wave 2 onwards**)
 - The content of their role file (read it and include it verbatim in their prompt)
 - Their specific task ID(s) for this wave
 - The list of available verification skills (see Verification section below)
 - Instructions to produce structured output (see Output Format below)
+- Instructions to read `skills/writing-style.md` before writing anything
+- Instructions to check `agent-team/skills/` for existing verification scripts before building new ones
 - Instructions to append any blockers/questions to `.agent-team/blockers.md`
 
 Do not gather context yourself before spawning — let each agent do its own context gathering for its assigned tasks.
 
 **Step 2: Wait for all wave agents to complete**
+
+If an agent produces no output or returns only freeform prose with no structured `## Task Output` block, treat that task as `❌ failed` — do not attempt to infer status from the text. Surface it to the Task Tracker as a missing output.
 
 **Step 3: Spawn the Task Tracker**
 
@@ -379,11 +418,20 @@ Wait for the Task Tracker to complete before proceeding.
 
 **Step 4: Check for questions and blockers**
 
-Read `.agent-team/blockers.md`. If there are new entries since the last wave, surface them to the user with context and get answers before the next wave. Append any decisions made to `.agent-team/decisions.md`.
+Read `.agent-team/blockers.md`. For each new entry since the last wave:
+- If the blocker can be resolved without user input (e.g., a design ambiguity that has an obvious answer given the plan), document your resolution as a decision in `.agent-team/decisions.md` and proceed.
+- If the blocker requires user input and **other waves can proceed without the answer**, document an assumption in `.agent-team/decisions.md`, mark it as an unresolved assumption, and continue.
+- If the blocker requires user input and **blocks all remaining work**, stop the loop. Surface the full context to the user: what is blocked, what was tried, and exactly what you need from them. Do not proceed until resolved.
 
-**Step 5: Check acceptance criteria**
+**Conflict resolution:** If the Task Tracker flagged a file conflict (two agents modified the same file in ways that don't merge cleanly), decide now — do not let it carry forward. Determine which version is correct, record the resolution in `.agent-team/decisions.md` with your reasoning, and if needed schedule a targeted remediation task for the next wave.
+
+Append any decisions made to `.agent-team/decisions.md`.
+
+**Step 5: Check acceptance criteria and code-reviewer findings**
 
 Read the Criteria Status table in `.agent-team/PLAN.md`. For each criterion, assess whether the work done in this wave has moved it forward. Update the table. Ask yourself: is there enough evidence to mark this `✅ met`? Be strict — partial implementation is not `✅`.
+
+Also check any code-reviewer outputs from this wave. A task with `blocking` findings from the code-reviewer is **not done**, regardless of what the implementing agent reported. Treat blocking findings as equivalent to `❌` on that task — plan a remediation wave.
 
 **Step 6: Decide what comes next**
 
@@ -454,12 +502,12 @@ This should be rare. When in doubt, stretch an existing role rather than creatin
 
 ## Phase 4 — Wrap-Up
 
-Once all acceptance criteria are `✅ met`:
+Once all acceptance criteria are `✅ met`, run these steps **in order** — each depends on the previous completing first:
 
-1. **Spawn the Task Tracker** one final time to write `.agent-team/final-summary.md`.
-2. **Spawn the Scribe** if any user-facing documentation needs updating (README, changelog, API docs, inline comments). Give it `.agent-team/change-log.md` as context.
-3. **Spawn the linear-manager** (if `linear-mode` is set) to link PRs to tickets and close issues. Coordinate with git-manager so PR URLs are available.
-4. **Spawn the git-manager** — PM surfaces the PR split proposal to the user and waits for explicit approval before git-manager executes. The proposal is written to `.agent-team/decisions.md` and can be revised.
+1. **Spawn the Task Tracker** one final time to write `.agent-team/final-summary.md`. Wait for it to complete before proceeding.
+2. **Spawn the Scribe** if any user-facing documentation needs updating (README, changelog, API docs, inline comments). Give it `.agent-team/change-log.md` and `.agent-team/final-summary.md` as context. Scribe must run after Task Tracker completes Step 1 — it needs `final-summary.md` to exist.
+3. **Spawn the git-manager** — PM surfaces the PR split proposal to the user and waits for explicit approval before git-manager executes. The proposal is written to `.agent-team/decisions.md` and can be revised. Wait for git-manager to complete and write PR URLs to `decisions.md` before proceeding.
+4. **Spawn the linear-manager** (if `linear-mode` is set) — reads PR URLs from `.agent-team/decisions.md` (written by git-manager in Step 3), links them to tickets, and closes issues. Linear-manager must run after git-manager — it needs the PR URLs.
 5. **Write the after-action report** (see Phase 5) — once, after all PRs are created.
 6. **Apply role improvements** from the after-action grades to the relevant `agents/*.md` files (see Phase 5).
 7. **Present a summary to the user:**

@@ -51,9 +51,11 @@ All entries to `.agent-team/` files must be attributed using the required format
 [your content]
 ```
 
-### Step 4: Write your design output
+### Step 4: Write your design output to decisions.md
 
-Your primary deliverable is a clear, concrete design that engineers can implement without needing to make structural decisions themselves. Write it in a way that leaves no ambiguity about:
+Your primary deliverable is a clear, concrete design that engineers can implement without needing to make structural decisions themselves. **Write the full design to `.agent-team/decisions.md` with attribution** — this is how Wave 2 engineers find it. Returning it only as structured output text is not enough; it must be in the file.
+
+Write it in a way that leaves no ambiguity about:
 - Where new code goes
 - What it looks like at the interface level
 - How it connects to existing code

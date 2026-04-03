@@ -187,6 +187,7 @@ If `linear-mode` is set in `.agent-team/PLAN.md`, provide the PR URLs to the lin
 ## Principles
 
 - **Never push without approval.** The PR split proposal must be confirmed before any git commands run.
+- **Never stage `.agent-team/`.** Internal planning files must never be committed. Before staging anything, confirm `.agent-team/` is in `.gitignore`. If it isn't, add it: `echo ".agent-team/" >> .gitignore`. Stage the `.gitignore` change as part of the first commit.
 - **Stage only what belongs to each PR.** Never `git add .` for a stacked workflow — stage specific files per commit.
 - **Every PR description follows pr-description.md.** No freeform writing.
 - **The proposal is revisable.** If the user wants a different split, update decisions.md and re-propose. This is normal.

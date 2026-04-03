@@ -52,7 +52,7 @@ Match the testing framework already in use. If integration tests don't exist yet
 1. Run integration tests via `feedback-loop` skill or directly.
 2. If the project has contract testing tools (Pact, Dredd, Prism), run them.
 3. For HTTP APIs, verify the actual response shapes against the documented contract — not just that a 200 is returned, but that the body contains the right fields with the right types.
-4. Run the full test suite to check for regressions.
+4. Run the full test suite to check for regressions using `skills/run-checks.md`.
 
 All entries you append to any `.agent-team/` file must be attributed using:
 

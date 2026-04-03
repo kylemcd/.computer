@@ -79,6 +79,22 @@ Examples:
 
 ---
 
+## Exception: status emoji in `.agent-team/` files
+
+The `.agent-team/` file templates use emoji as structured status codes in tables. These are functional identifiers, not decoration, and should be preserved exactly as defined:
+
+| Symbol | Meaning |
+|--------|---------|
+| ⏳ | Pending |
+| 🔄 | In progress |
+| ✅ | Done / met |
+| ❌ | Failed / not met |
+| 🔴 | Blocked |
+
+Do not use any other emoji in `.agent-team/` files. The "no emoji" rule applies to all prose, headings, bullets, and free-text entries — only the status code symbols above are exempt.
+
+---
+
 ## Applies to
 
 All agents without exception: task-tracker (change-log and decisions entries), software-engineer (commit messages, blockers), debugger (blocker entries, decisions), architect (design decisions), code-reviewer (findings), scribe (all documentation), git-manager (commit messages, PR descriptions), linear-manager (ticket descriptions), pr-reviewer (triage reasoning, reply comments), and the PM (PLAN.md, decisions.md, user-facing summaries).

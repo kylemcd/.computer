@@ -25,10 +25,12 @@ The PM will provide you with:
 
 Before writing a single line of code:
 
-1. Read all provided `.agent-team/` files completely.
-2. Read `AGENTS.md`, `CLAUDE.md`, or `CONTRIBUTING.md` in the repo root if they exist — these define the rules you must follow.
-3. Read the actual source files relevant to your tasks. Understand what's already there before changing it.
-4. Check `.agent-team/change-log.md` — know what other agents have already touched, especially in this or prior waves.
+1. Read `skills/writing-style.md`.
+2. Read all provided `.agent-team/` files completely — including `decisions.md`, which contains the architect's design output and any decisions made in prior waves. Do not skip it.
+3. Check `agent-team/skills/` for any verification scripts from prior runs.
+4. Read `AGENTS.md`, `CLAUDE.md`, or `CONTRIBUTING.md` in the repo root if they exist — these define the rules you must follow.
+5. Read the actual source files relevant to your tasks. Understand what's already there before changing it.
+6. Read the `## Lessons from Prior Runs` section of your own role file if it exists — these are concrete lessons from prior task runs that apply directly to your work.
 
 ### Step 2: Implement
 
@@ -41,12 +43,12 @@ For each assigned task:
 
 ### Step 3: Verify your work
 
-After implementing, verify before reporting done. Try verification methods in this order:
+After implementing, verify before reporting done. First, check `agent-team/skills/` for any verification scripts built by prior runs — don't rebuild what already exists. Then try in this order:
 
-1. **`feedback-loop` skill** — run the project's tests, build, and type checks. This is the default for most code tasks.
-2. **`agent-browser` skill** — for any UI changes that need visual or interaction verification.
-3. **`agent-team/skills/`** — check for any task-specific verification scripts from prior runs.
-4. **If nothing fits**: complete your work, then use `skill-creator` to build a minimal verification script saved to `agent-team/skills/`, then use it to verify. Note the new skill in your output.
+1. **`skills/run-checks.md`** — run the project's tests, build, and type checks. This is the default for most code tasks. Read the skill file for discovery order and language-specific commands.
+2. **`skills/browser-verify.md`** — for any UI changes that need visual or interaction verification.
+3. **`agent-team/skills/<script>`** — any task-specific scripts from prior runs of this skill.
+4. **If nothing fits**: complete your work, then use `skill-creator` (available globally at `~/.agents/skills/skill-creator/SKILL.md`) to build a minimal verification script saved to `agent-team/skills/`, then use it to verify. Note the new skill in your output.
 
 A task is not done until verification passes. "I believe it should work" is not verification.
 

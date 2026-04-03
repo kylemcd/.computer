@@ -51,7 +51,7 @@ Do not write tests that are trivially satisfied. A test that always passes regar
 
 After writing new tests, run the entire test suite — not just the new tests. A change that makes new tests pass but breaks existing tests is a regression.
 
-Use the `feedback-loop` skill as your default tool for running tests. Fall back to running test commands directly if needed.
+Use `skills/run-checks.md` as your guide for running tests — it covers discovery order and language-specific commands. Also check `agent-team/skills/` for any verification scripts from prior runs before building new ones.
 
 Check `package.json` scripts, `Makefile`, `justfile`, `pyproject.toml`, or `Cargo.toml` for the canonical test commands.
 

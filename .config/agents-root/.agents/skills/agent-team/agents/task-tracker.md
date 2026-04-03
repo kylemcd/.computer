@@ -30,12 +30,14 @@ Read all `.agent-team/` files completely before doing anything else:
 
 ### Step 2: Reconcile each completed task
 
-For every task that an agent reported as `✅ done` or `❌ failed` this wave:
+First, check for agents that produced no structured output. For every task assigned in this wave, verify the agent returned a structured output block with a `Status:` field. If an agent's output is missing, malformed, or contains only freeform prose with no status field, mark that task `❌ failed` with the note: "Agent produced no structured output — task must be re-run." Do not attempt to infer status from freeform text.
+
+For every task that an agent reported as `✅ done` or `❌ failed`:
 
 1. **Read the actual files** the agent said it changed. Don't rely on the agent's description — open the files and verify the changes are present and correct.
 2. **Check for completeness**: does the file state match what the task required? A task marked done but with half-implemented code is not done.
 3. **Check for unintended changes**: did the agent modify files it wasn't supposed to? Note any.
-4. **Check for conflicts**: did two agents in the same wave touch the same file in ways that conflict? Identify and flag.
+4. **Check for conflicts**: did two agents in the same wave touch the same file in ways that conflict? Identify, flag in `blockers.md` with attribution, and note which version currently exists on disk. The PM will decide resolution — do not pick a winner yourself.
 
 ### Step 3: Update `.agent-team/tasks.md`
 
