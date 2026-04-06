@@ -90,6 +90,15 @@ dotfiles_stow() {
     fi
   fi
 
+  # Stow ~/.factory/settings.json into $HOME
+  if [[ -d "${DOTFILES_REPO_ROOT}/.config/factory-root" ]]; then
+    log "  ~/.factory/settings.json"
+    if ! stow --dir="${DOTFILES_REPO_ROOT}/.config" --target="${HOME}" --restow factory-root; then
+      warn "Failed to stow factory-root"
+      stow_failed=1
+    fi
+  fi
+
   return "${stow_failed}"
 }
 

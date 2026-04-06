@@ -82,13 +82,17 @@ vim.keymap.set("n", "<leader>zz", function()
   require("zen-mode").toggle()
 end)
 
--- Telescope - lazy load when needed
-vim.keymap.set('n', '<leader>pf', function() require('telescope.builtin').find_files() end, {})
-vim.keymap.set('n', '<C-p>', function() require('telescope.builtin').git_files() end, {})
-vim.keymap.set('n', '<leader>ps', function()
-    require('telescope.builtin').grep_string({ search = vim.fn.input("Grep > ") })
-end)
-vim.keymap.set('n', '<leader>pg', function() require('telescope.builtin').live_grep() end, {})
+-- fff.nvim - file finding and grep
+vim.keymap.set('n', '<leader>pf', function() require('fff').find_files() end, { desc = 'Find files (fff)' })
+vim.keymap.set('n', '<C-p>', function() require('fff').find_files() end, { desc = 'Find files (fff)' })
+vim.keymap.set('n', '<leader>pg', function() require('fff').live_grep() end, { desc = 'Live grep (fff)' })
+vim.keymap.set('n', 'ff', function() require('fff').find_files() end, { desc = 'Find files (fff)' })
+vim.keymap.set('n', 'fg', function() require('fff').live_grep() end, { desc = 'Live grep (fff)' })
+vim.keymap.set('n', 'fz', function() require('fff').live_grep({ grep = { modes = { 'fuzzy', 'plain' } } }) end, { desc = 'Fuzzy grep (fff)' })
+vim.keymap.set('n', 'fc', function() require('fff').live_grep({ query = vim.fn.expand('<cword>') }) end, { desc = 'Search word under cursor (fff)' })
+
+-- Telescope - buffers, help, and other pickers
+vim.keymap.set('n', '<leader>ps', function() require('fff').live_grep() end, { desc = 'Live grep (fff)' })
 vim.keymap.set('n', '<leader>pb', function() require('telescope.builtin').buffers() end, {})
 vim.keymap.set('n', '<leader>ph', function() require('telescope.builtin').help_tags() end, {})
 

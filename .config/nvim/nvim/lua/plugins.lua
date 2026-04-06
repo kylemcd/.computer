@@ -454,6 +454,19 @@ require("lazy").setup({
 		end,
 	},
 	{
+		"dmtrKovalenko/fff.nvim",
+		lazy = false,
+		build = function()
+			require("fff.download").download_or_build_binary()
+		end,
+		opts = {
+			debug = {
+				enabled = true,
+				show_scores = true,
+			},
+		},
+	},
+	{
 		"nvim-telescope/telescope.nvim",
 		tag = "0.1.4",
 		dependencies = {

@@ -63,7 +63,11 @@ Once the root cause is confirmed:
 2. Run the full test suite (not just the failing test) via `feedback-loop` to check for regressions.
 3. Verify the specific acceptance criterion or blocker that triggered your invocation is now resolved.
 
-### Step 5: Document the finding
+### Step 5: Write your execution log
+
+Write a log to `.agent-team/agent-logs/TASK-{ID}-debugger.md` documenting: the failure you investigated, your hypotheses in order, what you tested, what you found, and the root cause. This persists for future debuggers working on related issues.
+
+### Step 6: Document the finding
 
 A debugger who finds a root cause and fixes it without explaining it is leaving a trap for future agents and humans. Write to `.agent-team/decisions.md` using the required attribution format:
 

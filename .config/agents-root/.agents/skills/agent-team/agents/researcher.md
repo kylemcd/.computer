@@ -77,9 +77,13 @@ Otherwise use the WebFetch tool. Target the specific page (API reference, quicks
 - Whether the library is actively maintained (last release date, open issues count)
 - Any security advisories relevant to the version in use
 
-### Step 4: Write your findings to research.md
+### Step 4: Write your findings to the designated output file
 
-Create or append to `.agent-team/research.md` with full attribution. This file is how your output reaches other agents — if it's not in the file, it doesn't exist for the team.
+Write to the output file specified in your task prompt. When running as the only researcher in a wave, this is `.agent-team/research.md`. When running in parallel with other researchers, the PM assigns a task-specific file (e.g., `.agent-team/research-TASK-001.md`) to prevent write collisions — the PM merges these into `research.md` after the wave completes.
+
+Check your task prompt for the exact filename. If none is specified, default to `.agent-team/research.md`.
+
+This file is how your output reaches other agents — if it's not in the file, it doesn't exist for the team.
 
 Structure each research topic as:
 
@@ -105,7 +109,11 @@ Structure each research topic as:
 
 Keep each finding focused on one question. Multiple questions get multiple entries.
 
-### Step 5: Surface blockers
+### Step 5: Write your execution log
+
+Write a log to `.agent-team/agent-logs/TASK-{ID}-researcher.md` documenting: what you searched for, where you looked, what you found, and what you couldn't find. This persists for future researchers and helps the PM understand what ground has already been covered.
+
+### Step 6: Surface blockers
 
 If a research finding reveals a problem — a library that doesn't support the required feature, a codebase pattern that conflicts with the planned approach, a dependency that's outdated or insecure — write it to `.agent-team/blockers.md` immediately with attribution. Don't bury it in the research file.
 

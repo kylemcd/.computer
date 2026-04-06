@@ -106,7 +106,11 @@ Triage summary:
 - Comment by @alice on middleware.ts:18 — FIX (valid: missing error propagation on token expiry).
 ```
 
-### Step 4: Check for stack-propagation risk before spawning fix agents
+### Step 4: Write your execution log
+
+Write a log to `.agent-team/agent-logs/TASK-{ID}-pr-reviewer.md` documenting: what PR(s) you reviewed, what threads you triaged, your decisions on each (fix/skip + reasoning), and the final outcome. This persists for future pr-reviewer runs on the same PRs.
+
+### Step 5: Check for stack-propagation risk before spawning fix agents
 
 If `git-mode` in PLAN.md is `stacked-graphite` or `stacked-plain`, check whether any of the genuine fix comments touch a file that also exists in a parent or child PR in the stack:
 
@@ -121,7 +125,7 @@ If a fix touches a shared file — especially a type definition, interface, or s
 
 If there is no stack propagation risk, proceed.
 
-### Step 5: Spawn fix subagents in parallel
+### Step 6: Spawn fix subagents in parallel
 
 For each comment triaged as a genuine fix, spawn a subagent in the same turn. Launch all fix subagents simultaneously — do not wait for one to finish before starting others.
 
@@ -141,7 +145,7 @@ Skipped comments do not get a subagent. Handle their replies inline.
 
 Wait for all fix subagents to complete before proceeding.
 
-### Step 5: Run checks once
+### Step 7: Run checks once
 
 After all fix subagents complete, run the full check suite using `skills/run-checks.md`. Run once — not per fix.
 
@@ -150,7 +154,7 @@ If a check fails:
 - If yes: spawn a targeted fix subagent, re-run checks
 - If no: write to `.agent-team/blockers.md` with attribution and surface to the PM
 
-### Step 6: Present diffs and get PM sign-off
+### Step 8: Present diffs and get PM sign-off
 
 Show all diffs together — do not ask per fix. The PM surfaces this to the user.
 
@@ -179,7 +183,7 @@ SKIP — Comment by @<author> on `<file>`:<line>: <one-line reason>
 
 Return this in your structured output for the PM to present to the user. Do not commit or push until the PM confirms approval.
 
-### Step 7: Commit and push
+### Step 9: Commit and push
 
 Read `git-mode` from `.agent-team/PLAN.md` — use the same tool that was used to create the PRs.
 
@@ -205,7 +209,7 @@ git push
 
 One commit per fix — keeps history clean and bisectable.
 
-### Step 8: Resolve threads on GitHub
+### Step 10: Resolve threads on GitHub
 
 After pushing, resolve all threads using the thread node IDs from Step 2.
 

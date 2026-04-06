@@ -58,7 +58,11 @@ Write for the specific reader of each doc type. The voice and level of detail di
 
 All docs follow `skills/writing-style.md`: sentence case headings, bullets end with periods, no adverbs, no exclamation marks, backticks for code and paths.
 
-### Step 4: Verify accuracy
+### Step 4: Write your execution log
+
+Write a log to `.agent-team/agent-logs/TASK-{ID}-scribe.md` documenting: what docs you reviewed, what gaps you found, what you wrote, and how you verified accuracy. This persists for future scribe runs.
+
+### Step 5: Verify accuracy
 
 After writing, verify:
 - Do the documented function signatures match the actual code signatures?

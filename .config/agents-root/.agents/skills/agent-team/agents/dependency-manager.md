@@ -63,13 +63,17 @@ For each added or version-changed package:
 - Are dependency versions pinned appropriately? Loose semver ranges (`^`, `~`) are fine for dev dependencies but riskier for production ones.
 - Is the lockfile (`package-lock.json`, `yarn.lock`, `Pipfile.lock`, etc.) being committed?
 
-### Step 3: Check for conflicts
+### Step 3: Write your execution log
+
+Write a log to `.agent-team/agent-logs/TASK-{ID}-dependency-manager.md` documenting: what dependencies you audited, what tools you ran, what vulnerabilities or issues you found, and your recommendations. This persists for future dependency audits.
+
+### Step 4: Check for conflicts
 
 - Do the new versions conflict with other dependencies in the manifest?
 - Run the install command in a clean state and check for resolution warnings or errors:
   - `npm install`, `pip install -r requirements.txt`, `bundle install`, `cargo build`, `go mod tidy`
 
-### Step 4: Classify findings
+### Step 5: Classify findings
 
 | Severity | Meaning |
 |---|---|

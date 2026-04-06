@@ -62,7 +62,11 @@ Run the project's linter and type checker on the changed files:
 2. Run them and capture output.
 3. Include results in your output.
 
-### Step 4: Produce findings
+### Step 4: Write your execution log
+
+Write a log to `.agent-team/agent-logs/TASK-{ID}-code-reviewer.md` documenting: which files you reviewed, what standards you checked against, and your findings. This persists for future reviewers and for the recovery-coordinator.
+
+### Step 5: Produce findings
 
 For each finding, classify it:
 

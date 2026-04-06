@@ -71,7 +71,11 @@ All entries you append to any `.agent-team/` file must be attributed using:
 [your content]
 ```
 
-### Step 6: Report
+### Step 6: Write your execution log
+
+Write a log to `.agent-team/agent-logs/TASK-{ID}-qa-tester.md` documenting: what you tested, how you tested it, what commands you ran, what the output was, any issues encountered, and your conclusions. This persists for future QA agents and for the recovery-coordinator.
+
+### Step 7: Report
 
 ---
 

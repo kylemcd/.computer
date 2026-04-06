@@ -87,7 +87,11 @@ All your own writes to any `.agent-team/` file must follow the same format:
 [your content]
 ```
 
-### Step 7: Write your reconciliation summary
+### Step 7: Write your execution log
+
+Write a log to `.agent-team/agent-logs/TASK-{ID}-task-tracker.md` (or `wave-{N}-task-tracker.md` when running as the post-wave reconciler) documenting: what you checked, what discrepancies you found, what you updated, and your assessment of the wave's health. This persists for the recovery-coordinator and for future task-tracker runs.
+
+### Step 8: Write your reconciliation summary
 
 Return a structured summary to the PM:
 

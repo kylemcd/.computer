@@ -73,7 +73,11 @@ For every changed query, ORM call, or data access layer:
 **Security**
 - Are all user-supplied values parameterized? No string interpolation into queries.
 
-### Step 4: Run database checks
+### Step 4: Write your execution log
+
+Write a log to `.agent-team/agent-logs/TASK-{ID}-database-specialist.md` documenting: what schema/query changes you reviewed, what checks you ran, what issues you found, and your recommendations. This persists for future database specialists.
+
+### Step 5: Run database checks
 
 If the project has a local database available:
 1. Run the migrations against it

@@ -61,7 +61,11 @@ All entries you append to any `.agent-team/` file must be attributed using:
 [your content]
 ```
 
-### Step 5: Check for breaking changes
+### Step 5: Write your execution log
+
+Write a log to `.agent-team/agent-logs/TASK-{ID}-integration-tester.md` documenting: what integration points you tested, what tests you wrote, what passed/failed, and any breaking changes found. This persists for future integration testers.
+
+### Step 6: Check for breaking changes
 
 If this task changed a public or shared interface, explicitly assess: is this a breaking change for any existing caller?
 - Removed fields

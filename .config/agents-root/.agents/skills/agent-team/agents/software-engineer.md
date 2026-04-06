@@ -52,7 +52,11 @@ After implementing, verify before reporting done. First, check `agent-team/skill
 
 A task is not done until verification passes. "I believe it should work" is not verification.
 
-### Step 4: Append blockers if stuck
+### Step 4: Write your execution log
+
+Before returning your structured output, write a log of everything you did to `.agent-team/agent-logs/TASK-{ID}-software-engineer.md`. Follow the agent log format from the skill. Include: what you did in order, decisions you made, files you touched, issues you hit, and your final result. This log persists — if you or another software-engineer is spawned later for remediation, they will read it to understand what was already tried.
+
+### Step 5: Append blockers if stuck
 
 If you encounter a blocker you cannot resolve — a missing dependency, an architectural ambiguity, a conflict with another agent's changes — append it to `.agent-team/blockers.md` using the required attribution format:
 

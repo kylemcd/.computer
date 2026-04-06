@@ -74,7 +74,11 @@ Work through this checklist for the changed UI:
 - [ ] Error states are clearly communicated in text
 - [ ] Success/completion states are announced
 
-### Step 4: Classify findings
+### Step 4: Write your execution log
+
+Write a log to `.agent-team/agent-logs/TASK-{ID}-accessibility-auditor.md` documenting: what UI components you audited, what automated tools you ran, what manual checks you performed, and your findings. This persists for future accessibility auditors.
+
+### Step 5: Classify findings
 
 | Severity | Meaning |
 |---|---|

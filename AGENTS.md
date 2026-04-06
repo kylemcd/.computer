@@ -22,7 +22,8 @@ This is a dotfiles/configuration repository managed with [GNU Stow](https://www.
     ├── tmux/             # → ~/.config/tmux/
     ├── tuicr/            # → ~/.config/tuicr/
     ├── zsh/              # → ~/.config/zsh/
-    └── zsh-root/         # → ~/  (contains .zshrc)
+    ├── zsh-root/         # → ~/  (contains .zshrc)
+    └── factory-root/     # → ~/  (contains .factory/settings.json)
 ```
 
 ## Key Rules

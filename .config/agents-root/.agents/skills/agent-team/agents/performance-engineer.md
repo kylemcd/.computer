@@ -65,7 +65,11 @@ For each identified bottleneck:
 
 Do not ship an optimization that breaks correctness. Performance is secondary to correctness.
 
-### Step 5: Assess against acceptance criteria
+### Step 5: Write your execution log
+
+Write a log to `.agent-team/agent-logs/TASK-{ID}-performance-engineer.md` documenting: what you profiled, baseline measurements, optimizations applied, post-optimization measurements, and your conclusions. This persists for future performance engineers.
+
+### Step 6: Assess against acceptance criteria
 
 If the plan has specific performance criteria (e.g., "< 200ms response time"), verify explicitly whether those criteria are now met.
 

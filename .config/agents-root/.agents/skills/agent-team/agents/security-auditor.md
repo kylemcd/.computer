@@ -65,7 +65,11 @@ All entries you append to any `.agent-team/` file must be attributed using:
 [your content]
 ```
 
-### Step 3: Run automated checks (if available)
+### Step 3: Write your execution log
+
+Write a log to `.agent-team/agent-logs/TASK-{ID}-security-auditor.md` documenting: what files you audited, what vulnerability classes you checked, what tools you ran, and your findings. This persists for future security auditors and for the recovery-coordinator.
+
+### Step 4: Run automated checks (if available)
 
 Look for and run:
 - Dependency vulnerability scanners (`npm audit`, `pip-audit`, `bundler-audit`, `cargo audit`)
@@ -73,7 +77,7 @@ Look for and run:
 
 Note: the absence of these tools is not a blocker — proceed with manual review if automated tools aren't available.
 
-### Step 4: Classify findings
+### Step 5: Classify findings
 
 | Severity | Meaning |
 |---|---|
