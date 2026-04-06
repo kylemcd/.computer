@@ -11,6 +11,9 @@ This is a dotfiles/configuration repository managed with [GNU Stow](https://www.
 │   ├── init.sh           # Xcode CLI tools, Rosetta, Homebrew
 │   └── install.sh        # brew bundle + stow
 ├── packages              # Brewfile
+├── bun-packages          # bun global packages (one per line)
+├── gh-extensions         # gh extensions (one per line)
+├── curl-packages         # curl | bash installers (one URL per line)
 └── .config/
     ├── aerospace/        # → ~/.config/aerospace/
     ├── agents-root/      # → ~/  (contains .agents/skills/)

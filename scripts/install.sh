@@ -56,6 +56,14 @@ else
   warn "gh not found, skipping gh extensions."
 fi
 
+# Install curl packages
+log "Installing curl packages..."
+while IFS= read -r url || [[ -n "$url" ]]; do
+  [[ -z "$url" || "$url" == \#* ]] && continue
+  log "  Running installer: $url"
+  curl -fsSL "$url" | bash
+done < "${REPO_ROOT}/curl-packages"
+
 # Git config
 log "Configuring git..."
 git config --global credential.helper osxkeychain

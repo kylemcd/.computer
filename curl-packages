@@ -1,0 +1,6 @@
+# curl-packages
+# One URL per line. Each script is piped to bash during install.
+# Format: <url>
+
+# fff MCP server (fast file search for AI agents + neovim)
+https://dmtrkovalenko.dev/install-fff-mcp.sh
