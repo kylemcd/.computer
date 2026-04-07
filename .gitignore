@@ -1,3 +1,4 @@
 .DS_Store
 .agent-teams/
 .config/factory-root/
+.config/opencode/opencode/node_modules/
