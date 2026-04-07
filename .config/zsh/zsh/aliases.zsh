@@ -56,6 +56,7 @@ alias gms="git checkout main && git pull"
 # opencode
 alias oc="opencode"
 
+
 # cursor cli
 alias agent="cursor-agent"
 

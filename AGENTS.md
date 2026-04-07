@@ -60,13 +60,13 @@ Agent skills live in `.config/agents-root/.agents/skills/` and are stowed to `~/
 Skills in `.config/agents-root/` but **outside** `.agents/skills/` are not stowed and therefore not visible to agents. They are works-in-progress kept in the repo for development.
 
 - **agent-team-draft** → `.config/agents-root/agent-team-draft/` — orchestrates a team of specialized agents for large tasks
+- **agent-browser-draft** → `.config/agents-root/agent-browser-draft/` — browser automation via CLI (superseded by firefox MCP)
+- **browse-dashboard-draft** → `.config/agents-root/browse-dashboard-draft/` — interact with local Knock dashboard (superseded by firefox MCP)
 
 To promote a draft skill to live: move it into `.config/agents-root/.agents/skills/` and re-stow.
 
 ### Available skills
 
-- **agent-browser** — browser automation via CLI
-- **browse-dashboard** — interact with local dashboard at localhost:3000
 - **defuddle** — extract clean markdown from web pages (prefer over WebFetch for articles/docs)
 - **emil-design-eng** — UI polish and component design philosophy
 - **feedback-loop** — self-validate work with deterministic feedback loops
