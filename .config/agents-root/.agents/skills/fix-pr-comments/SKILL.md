@@ -42,15 +42,30 @@ gt log --short 2>/dev/null
 
 If there are multiple PRs in the stack, collect all their numbers. Otherwise treat it as a single PR.
 
-### Poll loop
+### Ask how often to poll
 
-Repeat every 60 seconds:
+Before starting, ask the user using the `question` tool:
 
-```bash
-sleep 60
+```
+question: "How often should I check for new BugBot comments?"
+options:
+  - "Every 60 seconds (default)"
+  - "Every 30 seconds"
+  - "Every 2 minutes"
+  - "Every 5 minutes"
 ```
 
-On each tick, fetch unresolved BugBot threads for every PR in scope (see Step 2 below for the GraphQL query). Filter to threads where `author.login` is `cursor-bugbot` (or other known bot accounts: `coderabbitai[bot]`, `sourcery-ai[bot]`, `github-actions[bot]`).
+The `custom` option (always available) lets them type any interval they want. Use whatever they say as the sleep duration. Default to 60 seconds if they don't specify.
+
+### Poll loop
+
+On each tick, sleep for the chosen interval:
+
+```bash
+sleep <interval>
+```
+
+Then fetch unresolved BugBot threads for every PR in scope (see Step 2 below for the GraphQL query). Filter to threads where `author.login` is `cursor-bugbot` (or other known bot accounts: `coderabbitai[bot]`, `sourcery-ai[bot]`, `github-actions[bot]`).
 
 **Single PR:** if any unresolved BugBot threads are found, stop polling and jump straight into Fix Mode (Step 2 onwards) for that PR.
 
@@ -77,11 +92,11 @@ options:
   - "Stop watching"
 ```
 
-If they choose to keep watching, restart the poll loop. If they stop, exit.
+If they choose to keep watching, restart the poll loop with the same interval. If they stop, exit.
 
 ### Interruption
 
-Tell the user how to stop the watch before starting: "I'll check every 60 seconds. Send a message at any time to stop."
+Tell the user how to stop the watch before starting: "I'll check every <interval>. Send a message at any time to stop."
 
 ---
 
