@@ -1,20 +1,93 @@
 ---
 name: fix-pr-comments
-description: Address unresolved GitHub PR review threads — especially from Cursor BugBot and other automated bots — skeptically and methodically. Use this skill whenever the user wants to work through open comments or feedback on a pull request, deal with bugbot or coderabbitai comments, resolve review threads, or address reviewer feedback on a PR. Does not apply to code comments (TODOs, inline comments in files) or general code review requests not tied to an open pull request.
+description: Address unresolved GitHub PR review threads — especially from Cursor BugBot and other automated bots — skeptically and methodically. Use this skill whenever the user wants to work through open comments or feedback on a pull request, deal with bugbot or coderabbitai comments, resolve review threads, or address reviewer feedback on a PR. Also use this skill when the user asks to "watch", "babysit", "monitor", or "keep an eye on" a PR for BugBot comments. Does not apply to code comments (TODOs, inline comments in files) or general code review requests not tied to an open pull request.
 allowed-tools:
   - "Bash(gh *)"
   - "Bash(git *)"
   - "Bash(gt *)"
   - "Bash(jq *)"
+  - "Bash(sleep *)"
 ---
 
 # Fix PR Comments
 
-Work through unresolved PR review comments skeptically: gather context, decide what's worth fixing, apply minimal correct changes, get the user's sign-off, then commit per-issue, push, and resolve the thread on GitHub.
+Two modes:
+
+- **Fix mode** (default): work through existing unresolved review comments right now — triage, fix, get sign-off, push, resolve.
+- **Watch mode**: poll the PR (or PR stack) every 60 seconds for new BugBot comments, then fire the fix workflow automatically when they appear.
+
+If the user says "watch", "babysit", "monitor", or "keep an eye on" a PR, use **Watch mode**. Otherwise use **Fix mode**.
 
 ## The core idea
 
 Automated tools like Cursor BugBot have high false-positive rates. The most important thing is to verify each issue against the *actual current codebase* — not just the diff — before touching anything. Many comments are stale, wrong, or describing intentional behavior.
+
+---
+
+## Watch Mode
+
+Use this when the user wants the agent to monitor a PR (or stack of PRs) and automatically kick off fixes when BugBot comments appear.
+
+### Detect stack vs single PR
+
+```bash
+GT_AVAILABLE=$(which gt > /dev/null 2>&1 && echo "true" || echo "false")
+```
+
+If `GT_AVAILABLE` is true, check whether there's a stack:
+
+```bash
+gt log --short 2>/dev/null
+```
+
+If there are multiple PRs in the stack, collect all their numbers. Otherwise treat it as a single PR.
+
+### Poll loop
+
+Repeat every 60 seconds:
+
+```bash
+sleep 60
+```
+
+On each tick, fetch unresolved BugBot threads for every PR in scope (see Step 2 below for the GraphQL query). Filter to threads where `author.login` is `cursor-bugbot` (or other known bot accounts: `coderabbitai[bot]`, `sourcery-ai[bot]`, `github-actions[bot]`).
+
+**Single PR:** if any unresolved BugBot threads are found, stop polling and jump straight into Fix Mode (Step 2 onwards) for that PR.
+
+**PR stack:** collect unresolved BugBot threads across all PRs. Only proceed to fixing when **every PR in the stack has been seen by BugBot** — meaning each PR has either:
+- At least one BugBot review (resolved or unresolved), OR
+- A BugBot comment saying it found no issues
+
+This avoids fixing PR #1 while BugBot hasn't reviewed PR #3 yet, which could result in redundant commits when the later reviews come in. While waiting for the full stack to be reviewed, report progress each tick:
+
+```
+[tick 4] Watching 3 PRs — BugBot reviewed: #42 ✓, #43 ✓, #44 waiting...
+```
+
+Once the full stack is reviewed, collect all unresolved BugBot threads across all PRs and fix them together in one pass.
+
+### After fixing
+
+When the fix workflow completes, ask the user:
+
+```
+question: "Fixes applied and pushed. What should I do now?"
+options:
+  - "Keep watching for new BugBot comments"
+  - "Stop watching"
+```
+
+If they choose to keep watching, restart the poll loop. If they stop, exit.
+
+### Interruption
+
+Tell the user how to stop the watch before starting: "I'll check every 60 seconds. Send a message at any time to stop."
+
+---
+
+## Fix Mode
+
+Work through unresolved PR review comments skeptically: gather context, decide what's worth fixing, apply minimal correct changes, get the user's sign-off, then commit per-issue, push, and resolve the thread on GitHub.
 
 ---
 
@@ -303,6 +376,14 @@ mutation {
 For top-level issue comments (which can't be "resolved"), reply with the relevant commit sha instead.
 
 ---
+
+## Writing style for PR replies
+
+When posting reply comments on GitHub threads, follow these rules:
+
+- **Never use em dashes** (—). Use commas, periods, or parentheses instead to break up sentences.
+- Keep replies concise and direct.
+- Use inline code formatting for identifiers, file names, and code snippets.
 
 ## Principles
 
