@@ -36,6 +36,7 @@ This is a dotfiles/configuration repository managed with [GNU Stow](https://www.
 - Do not create new top-level config directories without also updating `scripts/install.sh` to stow them.
 - **Keep this file up to date.** When new tools, configs, skills, or conventions are added to this repo, update AGENTS.md to reflect them.
 
+
 ## CRITICAL: Only Edit Files In This Repo
 
 **NEVER write to `~/.config/`, `~/`, or any path outside this repo directly.**
