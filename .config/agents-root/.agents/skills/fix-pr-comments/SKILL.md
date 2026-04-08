@@ -345,17 +345,13 @@ gt modify -m "fix: <concise description>
 Addresses comment by @<author>: <one-line summary of the issue>"
 ```
 
-Then submit the full stack by default:
+After **all** fixes across all branches are committed, submit the entire stack in one shot:
 
 ```bash
-gt submit --no-interactive --stack
+gt ss
 ```
 
-Only submit the current branch alone if the user explicitly asks for that:
-
-```bash
-gt submit --no-interactive
-```
+Do not run `gt submit` or `gt ss` per-fix or per-branch — commit everything first, then submit once at the end.
 
 ---
 
