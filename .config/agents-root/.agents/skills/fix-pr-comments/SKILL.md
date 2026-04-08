@@ -295,9 +295,31 @@ Use the answer to choose the right flow below. Never use `git add .` — stage o
 
 ## Step 8: Commit and push
 
+### Stack awareness
+
+When fixes span multiple PRs in a stack, each fix must be committed on the branch that owns that PR — not wherever the repo happens to be checked out. Before committing any fix, look up the branch for that PR:
+
+```bash
+gh pr view <pr_number> --json headRefName --jq '.headRefName'
+```
+
+Then checkout that branch before staging and committing:
+
+```bash
+git checkout <branch>
+```
+
+After all commits are done, return to the original branch:
+
+```bash
+git checkout <original_branch>
+```
+
+Group fixes by PR so you only checkout each branch once — don't thrash between branches per-fix.
+
 ### Plain git
 
-For each approved fix:
+For each approved fix, on the correct branch:
 
 ```bash
 git add <specific files>
@@ -306,15 +328,15 @@ git commit -m "fix: <concise description>
 Addresses comment by @<author>: <one-line summary of the issue>"
 ```
 
-Then push:
+After all commits across all branches, push each affected branch:
 
 ```bash
-git push
+git push origin <branch>
 ```
 
 ### Graphite (`gt`)
 
-For each approved fix:
+For each approved fix, on the correct branch:
 
 ```bash
 git add <specific files>
