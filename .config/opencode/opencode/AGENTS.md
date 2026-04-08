@@ -4,4 +4,4 @@ At the start of every session, check for an `AGENTS.md` file in the working dire
 
 ## File Search
 
-**Use fff MCP for all file search.** Prefer `fff_find_files` over Glob, `fff_grep` over Grep, and `fff_multi_grep` over multi-pattern Grep. Do not use bash `grep`, `find`, or `rg` for searching the codebase.
+**Use fff MCP for all file search.** Use `fff_find_files` instead of Glob, `fff_grep` instead of Grep, and `fff_multi_grep` for multi-pattern searches. Never use bash `grep`, `find`, or `rg` to search the codebase — always use the fff MCP tools.
