@@ -62,7 +62,9 @@ alias agent="cursor-agent"
 
 # tmux
 alias ts="tmux"
-alias tk="tmux kill-server"
+tk() {
+  read -q "REPLY?Kill tmux server? [y/N] " && echo && tmux kill-server
+}
 alias tl="tmux ls"
 _tsp_split() { ~/.computer/.config/tmux/tmux/split-pane.sh "$1"; }
 alias tsp="_tsp_split 2"
