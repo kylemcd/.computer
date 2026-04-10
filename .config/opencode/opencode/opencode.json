@@ -3,7 +3,9 @@
   "plugin": ["@mohak34/opencode-notifier@latest"],
   "permission": {
     "external_directory": {
-      "/tmp/**": "allow"
+      "/tmp/**": "allow",
+      "~/.agent/**": "allow",
+      "~/.agent-browser/**": "allow"
     }
   },
   "mcp": {
