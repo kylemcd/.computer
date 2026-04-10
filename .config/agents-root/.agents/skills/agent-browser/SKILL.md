@@ -11,7 +11,6 @@ description: >-
   whether a frontend change is correct, use this skill to check rather than
   asking the user to verify manually.
 allowed-tools:
-  - "Bash(npx agent-browser:*)"
   - "Bash(agent-browser:*)"
   - "Bash(lsof:*)"
 ---
@@ -35,6 +34,7 @@ substring (e.g., CWD `.../my-app/packages/web` matches `my-app`). If ambiguous,
 list the available project names and ask the user which applies.
 
 Project config shape:
+
 ```json
 {
   "my-app": {
@@ -91,6 +91,7 @@ timeout 60 bash -c "until grep -q '<readyPattern>' /tmp/devserver-<project>.log 
 ```
 
 If `dev.port` is configurable via env var (common with Next.js), pass it:
+
 ```bash
 PORT=<free_port> yarn dev > /tmp/devserver-<project>.log 2>&1 &
 ```
@@ -108,6 +109,47 @@ agent-browser state load <stateFile from project config>
 This pre-loads cookies and localStorage so the app sees you as authenticated.
 Skip this step if there's no project config or no `stateFile`.
 
+### Origin mismatch: inject localStorage manually
+
+State files store localStorage entries under the origin they were captured from
+(e.g. `https://dashboard.example.com`). When the dev server runs on a different
+origin (e.g. `http://localhost:3000`), `state load` will **not** inject those
+entries — the browser silently ignores them.
+
+After `state load`, read the state file and check whether any `origins` entries
+have a different origin than the dev server. If they do:
+
+1. Open the dev server URL first (so the correct origin is active in the browser)
+2. For **each** localStorage entry under any origin in the state file, inject it:
+
+```bash
+agent-browser open http://localhost:<port>
+agent-browser wait --load networkidle
+
+# For each {name, value} in stateFile.origins[*].localStorage:
+agent-browser eval "localStorage.setItem('<name>', '<value>')"
+```
+
+Then reload the page so the app picks up the injected values:
+
+```bash
+agent-browser open http://localhost:<port>
+agent-browser wait --load networkidle
+```
+
+You can read and inject all entries with a shell one-liner:
+
+```bash
+python3 -c "
+import json, subprocess, sys
+data = json.load(open(sys.argv[1]))
+for origin in data.get('origins', []):
+    for entry in origin.get('localStorage', []):
+        val = json.dumps(entry['value'])
+        subprocess.run(['agent-browser', 'eval', f\"localStorage.setItem({json.dumps(entry['name'])}, {val})\"])
+" ~/.agent/memory/<project>-auth.json
+```
+
 ---
 
 ## Step 3: Navigate and Verify
@@ -124,7 +166,12 @@ After navigating, snapshot the page and check whether you landed on a login/auth
 Signs of auth failure: URL contains `/login`, `/signin`, `/auth`; snapshot contains
 "Sign in", "Log in", "Email" + "Password" inputs.
 
-If auth appears expired:
+If auth appears to have failed, first check whether it's an **origin mismatch** (state
+file origin differs from localhost) — if so, follow the localStorage injection steps in
+Step 2 above before concluding the token is expired.
+
+If auth is truly expired:
+
 1. Stop — do not attempt to fill credentials
 2. Tell the user which project's auth expired
 3. Show them the `refreshInstructions` from the config
@@ -133,6 +180,7 @@ If auth appears expired:
 ### DOM verification
 
 Check the snapshot for:
+
 - Expected elements present (navigation, key components, headings)
 - No error states (stack traces, "Something went wrong", 404/500 text)
 - Correct text content where verifiable
@@ -147,6 +195,7 @@ agent-browser screenshot --annotate
 ```
 
 Read the screenshot image and reason about what you see. Report specifically:
+
 - What looks correct
 - Any visual issues (misalignment, overflow, missing styles, wrong colors)
 - Whether the change you made is reflected as expected
@@ -220,6 +269,7 @@ agent-browser click @e3
 ## Ref Lifecycle
 
 Refs (`@e1`, `@e2`) are invalidated on every page change. Re-snapshot after:
+
 - Navigation (link clicks, form submits)
 - Dynamic DOM changes (modals, dropdowns opening)
 
@@ -251,6 +301,7 @@ When the user wants to register a new project, read the current
 `~/.agent/memory/agent-browser-projects.json` (create it if missing) and add an entry.
 
 Ask the user for:
+
 - **Project name** — should match a folder/repo name (used for CWD matching)
 - **dev.command** — how to start the dev server (e.g. `yarn dev`, `npm run dev`)
 - **dev.cwd** — subdirectory to run it from, relative to repo root (omit if root)
@@ -261,6 +312,7 @@ Ask the user for:
 - **sourceOrigin** — the live app URL the auth comes from
 
 Example completed entry:
+
 ```json
 {
   "my-app": {
