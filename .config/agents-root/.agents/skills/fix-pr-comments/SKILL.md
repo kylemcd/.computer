@@ -1,6 +1,6 @@
 ---
 name: fix-pr-comments
-description: Address unresolved GitHub PR review threads — especially from Cursor BugBot and other automated bots — skeptically and methodically. Use this skill whenever the user wants to work through open comments or feedback on a pull request, deal with bugbot or coderabbitai comments, resolve review threads, or address reviewer feedback on a PR. Also use this skill when the user asks to "watch", "babysit", "monitor", or "keep an eye on" a PR for BugBot comments. Does not apply to code comments (TODOs, inline comments in files) or general code review requests not tied to an open pull request.
+description: Address unresolved GitHub PR review threads — especially from Cursor BugBot and other automated bots — skeptically and methodically. Use this skill whenever the user wants to work through open comments or feedback on a pull request, deal with bugbot or coderabbitai comments, resolve review threads, or address reviewer feedback on a PR. Also use this skill when the user asks to "watch", "babysit", "monitor", or "keep an eye on" a PR — in watch mode, polls for both new BugBot comments AND CI check failures on every tick. Does not apply to code comments (TODOs, inline comments in files) or general code review requests not tied to an open pull request.
 allowed-tools:
   - "Bash(gh *)"
   - "Bash(git *)"
@@ -14,7 +14,7 @@ allowed-tools:
 Two modes:
 
 - **Fix mode** (default): work through existing unresolved review comments right now — triage, fix, get sign-off, push, resolve.
-- **Watch mode**: poll the PR (or PR stack) every 60 seconds for new BugBot comments, then fire the fix workflow automatically when they appear.
+- **Watch mode**: poll the PR (or PR stack) every 60 seconds for new BugBot comments AND CI failures, then fire the fix workflow automatically when they appear.
 
 If the user says "watch", "babysit", "monitor", or "keep an eye on" a PR, use **Watch mode**. Otherwise use **Fix mode**.
 
@@ -47,7 +47,7 @@ If there are multiple PRs in the stack, collect all their numbers. Otherwise tre
 Before starting, ask the user using the `question` tool:
 
 ```
-question: "How often should I check for new BugBot comments?"
+question: "How often should I check for new BugBot comments and CI status?"
 options:
   - "Every 60 seconds (default)"
   - "Every 30 seconds"
@@ -59,27 +59,88 @@ The `custom` option (always available) lets them type any interval they want. Us
 
 ### Poll loop
 
-On each tick, sleep for the chosen interval:
+Run the entire watch loop as a **single long-running bash script** rather than repeated tool calls. This is critical for token efficiency — each tool call reloads context, so a tight shell loop that sleeps internally costs a fraction of the tokens compared to calling `sleep` as a separate tool call every tick.
+
+Write and execute a script like this:
 
 ```bash
-sleep <interval>
+PR=<pr_number>
+INTERVAL=<seconds>
+OWNER=<owner>
+REPO=<repo>
+TICK=0
+
+while true; do
+  TICK=$((TICK + 1))
+
+  # Check CI status
+  CI_JSON=$(gh pr checks $PR --json name,status,conclusion 2>/dev/null)
+  FAILING=$(echo "$CI_JSON" | jq '[.[] | select(.conclusion == "failure")] | length')
+  RUNNING=$(echo "$CI_JSON" | jq '[.[] | select(.status == "in_progress" or .status == "queued")] | length')
+  PASSING=$(echo "$CI_JSON" | jq '[.[] | select(.conclusion == "success")] | length')
+
+  # Check unresolved BugBot threads
+  UNRESOLVED=$(gh api graphql -f query='
+  {
+    repository(owner: "'$OWNER'", name: "'$REPO'") {
+      pullRequest(number: '$PR') {
+        reviewThreads(first: 100) {
+          nodes {
+            id
+            isResolved
+            comments(first: 1) {
+              nodes { author { login } body }
+            }
+          }
+        }
+      }
+    }
+  }' | jq '[.data.repository.pullRequest.reviewThreads.nodes[] | select(.isResolved == false) | select(.comments.nodes[0].author.login | test("cursor|bugbot|coderabbitai|sourcery|github-actions"; "i"))]')
+
+  UNRESOLVED_COUNT=$(echo "$UNRESOLVED" | jq 'length')
+
+  echo "[tick $TICK] CI: $PASSING passing, $RUNNING running, $FAILING failing | BugBot threads: $UNRESOLVED_COUNT unresolved"
+
+  # Exit the loop if action is needed — the agent handles it from here
+  if [ "$FAILING" -gt 0 ]; then
+    echo "ACTION:CI_FAILURE"
+    echo "$CI_JSON" | jq '[.[] | select(.conclusion == "failure")]'
+    break
+  fi
+
+  if [ "$UNRESOLVED_COUNT" -gt 0 ]; then
+    echo "ACTION:BUGBOT_COMMENTS"
+    echo "$UNRESOLVED"
+    break
+  fi
+
+  # All clear — CI done and no unresolved threads
+  if [ "$RUNNING" -eq 0 ] && [ "$UNRESOLVED_COUNT" -eq 0 ]; then
+    echo "ACTION:ALL_CLEAR"
+    break
+  fi
+
+  sleep $INTERVAL
+done
 ```
 
-Then fetch unresolved BugBot threads for every PR in scope (see Step 2 below for the GraphQL query). Filter to threads where `author.login` is `cursor-bugbot` (or other known bot accounts: `coderabbitai[bot]`, `sourcery-ai[bot]`, `github-actions[bot]`).
+When the script exits with `ACTION:ALL_CLEAR`, report to the user that CI is passing and there are no unresolved BugBot threads, and stop.
 
-**Single PR:** if any unresolved BugBot threads are found, stop polling and jump straight into Fix Mode (Step 2 onwards) for that PR.
-
-**PR stack:** collect unresolved BugBot threads across all PRs. Only proceed to fixing when **every PR in the stack has been seen by BugBot** — meaning each PR has either:
-- At least one BugBot review (resolved or unresolved), OR
-- A BugBot comment saying it found no issues
-
-This avoids fixing PR #1 while BugBot hasn't reviewed PR #3 yet, which could result in redundant commits when the later reviews come in. While waiting for the full stack to be reviewed, report progress each tick:
+When the script exits with `ACTION:CI_FAILURE`, read the failing check names from the output and ask the user what to do:
 
 ```
-[tick 4] Watching 3 PRs — BugBot reviewed: #42 ✓, #43 ✓, #44 waiting...
+question: "CI check '<name>' is failing on PR #<number>. What should I do?"
+options:
+  - "Investigate and fix it"
+  - "Ignore it and keep watching"
+  - "Stop watching"
 ```
 
-Once the full stack is reviewed, collect all unresolved BugBot threads across all PRs and fix them together in one pass.
+If they choose to investigate, fetch the failure logs with `gh run view <run-id> --log-failed` and attempt a fix using the same subagent pattern as Fix Mode.
+
+When the script exits with `ACTION:BUGBOT_COMMENTS`, take the unresolved thread JSON and jump straight into Fix Mode (Step 2 onwards).
+
+**PR stack:** for multiple PRs, add each PR number to the loop and aggregate the checks. Only proceed to fixing BugBot comments when every PR in the stack has been seen by BugBot — meaning each PR has at least one BugBot review (resolved or unresolved). This avoids fixing PR #1 while BugBot hasn't reviewed PR #3 yet.
 
 ### After fixing
 
@@ -88,7 +149,7 @@ When the fix workflow completes, ask the user:
 ```
 question: "Fixes applied and pushed. What should I do now?"
 options:
-  - "Keep watching for new BugBot comments"
+  - "Keep watching for new BugBot comments and CI"
   - "Stop watching"
 ```
 
