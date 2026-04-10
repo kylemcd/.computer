@@ -73,11 +73,14 @@ TICK=0
 while true; do
   TICK=$((TICK + 1))
 
-  # Check CI status
-  CI_JSON=$(gh pr checks $PR --json name,status,conclusion 2>/dev/null)
-  FAILING_JSON=$(echo "$CI_JSON" | jq '[.[] | select(.conclusion == "failure" or .conclusion == "timed_out" or .conclusion == "cancelled" or .conclusion == "action_required" or .conclusion == "startup_failure")]')
-  RUNNING_JSON=$(echo "$CI_JSON" | jq '[.[] | select(.status == "in_progress" or .status == "queued")]')
-  PASSING_JSON=$(echo "$CI_JSON" | jq '[.[] | select(.conclusion == "success" or .conclusion == "neutral" or .conclusion == "skipped")]')
+  # Check CI status.
+  # gh pr checks uses `state` (not status/conclusion). Values: SUCCESS, FAILURE,
+  # PENDING, IN_PROGRESS, SKIPPED, NEUTRAL, CANCELLED, TIMED_OUT, ACTION_REQUIRED.
+  CI_JSON=$(gh pr checks $PR --json name,state 2>/dev/null)
+  TOTAL=$(echo "$CI_JSON" | jq 'length')
+  FAILING_JSON=$(echo "$CI_JSON" | jq '[.[] | select(.state == "FAILURE" or .state == "TIMED_OUT" or .state == "CANCELLED" or .state == "ACTION_REQUIRED" or .state == "STARTUP_FAILURE")]')
+  RUNNING_JSON=$(echo "$CI_JSON" | jq '[.[] | select(.state == "IN_PROGRESS" or .state == "PENDING")]')
+  PASSING_JSON=$(echo "$CI_JSON" | jq '[.[] | select(.state == "SUCCESS" or .state == "NEUTRAL" or .state == "SKIPPED")]')
 
   FAILING=$(echo "$FAILING_JSON" | jq 'length')
   RUNNING=$(echo "$RUNNING_JSON" | jq 'length')
@@ -89,8 +92,8 @@ while true; do
   # Check unresolved BugBot threads
   UNRESOLVED=$(gh api graphql -f query='
   {
-    repository(owner: "'$OWNER'", name: "'$REPO'") {
-      pullRequest(number: '$PR') {
+    repository(owner: "'"$OWNER"'", name: "'"$REPO"'") {
+      pullRequest(number: '"$PR"') {
         reviewThreads(first: 100) {
           nodes {
             id
@@ -109,6 +112,7 @@ while true; do
   # Print structured status block every tick so the agent can read state clearly
   echo "--- [tick $TICK] ---"
   echo "PR comments (unresolved): $UNRESOLVED_COUNT"
+  echo "CI total:      $TOTAL"
   echo "CI passing:    $PASSING"
   echo "CI failing:    $FAILING${FAILING_NAMES:+ ($FAILING_NAMES)}"
   echo "CI in-progress: $RUNNING${RUNNING_NAMES:+ ($RUNNING_NAMES)}"
@@ -116,10 +120,12 @@ while true; do
   # Compute and print the stop signal so the agent doesn't have to re-derive the logic
   if [ "$FAILING" -gt 0 ]; then
     echo "Should stop loop: YES (CI failing)"
-  elif [ "$UNRESOLVED_COUNT" -gt 0 ] && [ "$RUNNING" -eq 0 ]; then
+  elif [ "$UNRESOLVED_COUNT" -gt 0 ] && [ "$RUNNING" -eq 0 ] && [ "$TOTAL" -gt 0 ]; then
     echo "Should stop loop: YES (unresolved comments, CI settled)"
-  elif [ "$RUNNING" -eq 0 ] && [ "$FAILING" -eq 0 ] && [ "$UNRESOLVED_COUNT" -eq 0 ]; then
+  elif [ "$TOTAL" -gt 0 ] && [ "$RUNNING" -eq 0 ] && [ "$FAILING" -eq 0 ] && [ "$UNRESOLVED_COUNT" -eq 0 ]; then
     echo "Should stop loop: YES (all clear)"
+  elif [ "$TOTAL" -eq 0 ]; then
+    echo "Should stop loop: NO (CI not started yet)"
   else
     echo "Should stop loop: NO (waiting for $RUNNING in-progress check(s))"
   fi
@@ -136,14 +142,15 @@ while true; do
   # so we don't push a fix and restart the whole CI queue unnecessarily.
   # Once everything has settled (nothing in progress) and there are unresolved
   # comments, it's safe to break out and fix them.
-  if [ "$UNRESOLVED_COUNT" -gt 0 ] && [ "$RUNNING" -eq 0 ]; then
+  if [ "$UNRESOLVED_COUNT" -gt 0 ] && [ "$RUNNING" -eq 0 ] && [ "$TOTAL" -gt 0 ]; then
     echo "ACTION:BUGBOT_COMMENTS"
     echo "$UNRESOLVED"
     break
   fi
 
-  # All clear — CI ran to completion, nothing failing or in-progress, no unresolved threads
-  if [ "$RUNNING" -eq 0 ] && [ "$FAILING" -eq 0 ] && [ "$UNRESOLVED_COUNT" -eq 0 ]; then
+  # All clear — CI ran to completion, nothing failing or in-progress, no unresolved threads.
+  # Require TOTAL > 0 to avoid exiting before CI has even started.
+  if [ "$TOTAL" -gt 0 ] && [ "$RUNNING" -eq 0 ] && [ "$FAILING" -eq 0 ] && [ "$UNRESOLVED_COUNT" -eq 0 ]; then
     echo "ACTION:ALL_CLEAR"
     break
   fi
