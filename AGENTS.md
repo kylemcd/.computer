@@ -61,8 +61,6 @@ Agent skills live in `.config/agents-root/.agents/skills/` and are stowed to `~/
 Skills in `.config/agents-root/` but **outside** `.agents/skills/` are not stowed and therefore not visible to agents. They are works-in-progress kept in the repo for development.
 
 - **agent-team-draft** → `.config/agents-root/agent-team-draft/` — orchestrates a team of specialized agents for large tasks
-- **agent-browser-draft** → `.config/agents-root/agent-browser-draft/` — browser automation via CLI (superseded by firefox MCP)
-- **browse-dashboard-draft** → `.config/agents-root/browse-dashboard-draft/` — interact with local Knock dashboard (superseded by firefox MCP)
 
 To promote a draft skill to live: move it into `.config/agents-root/.agents/skills/` and re-stow.
 
@@ -79,5 +77,20 @@ To promote a draft skill to live: move it into `.config/agents-root/.agents/skil
 - **obsidian-cli** — interact with Obsidian vault via CLI
 - **obsidian-markdown** — Obsidian Flavored Markdown syntax
 - **skill-creator** — create/modify/eval agent skills
+- **agent-browser** — browser automation via `agent-browser` CLI with dev server management, auth state, and UI verification
 - **write-pr-description** — compose PR description content based on repo template and diff
+
+## Agent Memory
+
+`~/.agent/memory/` is a persistent cross-session key-value store for agents. It lives outside this repo (never version controlled) to avoid committing secrets.
+
+Each file is a named JSON blob written by tools/extensions and read by agent skills:
+
+| File | Written by | Read by | Contents |
+|---|---|---|---|
+| `agent-browser-projects.json` | Manually edited | agent-browser skill | Per-project config: dev server (command, cwd, port, readyPattern), auth (stateFile, refreshInstructions, sourceOrigin) |
+
+### Adding new memory files
+
+Skills that need cross-session persistence should read/write named JSON files in `~/.agent/memory/`. Document the file in the table above when adding one.
 

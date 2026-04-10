@@ -13,11 +13,7 @@ description: >-
 allowed-tools:
   - "Bash(npx agent-browser:*)"
   - "Bash(agent-browser:*)"
-  - "Bash(cat:*)"
-  - "Bash(ls:*)"
   - "Bash(lsof:*)"
-  - "Bash(ps:*)"
-  - "Bash(kill:*)"
 ---
 
 # Browser Automation with agent-browser
@@ -35,22 +31,22 @@ working directory** — not from a different worktree on the same port.
 
 Read `~/.agent/memory/agent-browser-projects.json` and match a project entry to the
 current repo. Match by checking whether the CWD path contains a project key as a
-substring (e.g., CWD `/Users/kyle/Code/knock-dashboard/packages/app` matches
-`knock-dashboard`). If ambiguous, list options and ask the user.
+substring (e.g., CWD `.../my-app/packages/web` matches `my-app`). If ambiguous,
+list the available project names and ask the user which applies.
 
 Project config shape:
 ```json
 {
-  "knock-dashboard": {
+  "my-app": {
     "dev": {
       "command": "yarn dev",
-      "cwd": "dashboard",
+      "cwd": "packages/web",
       "port": 3000,
       "readyPattern": "ready"
     },
-    "stateFile": "~/.agent/memory/knock-auth.json",
-    "refreshInstructions": "Click the Knock Auth Copier button in Firefox on any tab",
-    "sourceOrigin": "https://dashboard.knock-dev.app"
+    "stateFile": "~/.agent/memory/my-app-auth.json",
+    "refreshInstructions": "How to refresh auth when it expires (plain English)",
+    "sourceOrigin": "https://my-app.example.com"
   }
 }
 ```
@@ -275,7 +271,7 @@ Example completed entry:
       "readyPattern": "ready on"
     },
     "stateFile": "~/.agent/memory/my-app-auth.json",
-    "refreshInstructions": "Log into https://my-app.com in Firefox and click the Auth Copier extension",
+    "refreshInstructions": "Log into https://my-app.com and re-export your auth state",
     "sourceOrigin": "https://my-app.com"
   }
 }
