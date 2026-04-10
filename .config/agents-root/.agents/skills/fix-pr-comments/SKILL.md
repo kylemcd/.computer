@@ -59,105 +59,25 @@ The `custom` option (always available) lets them type any interval they want. Us
 
 ### Poll loop
 
-Run the entire watch loop as a **single long-running bash script** rather than repeated tool calls. This is critical for token efficiency — each tool call reloads context, so a tight shell loop that sleeps internally costs a fraction of the tokens compared to calling `sleep` as a separate tool call every tick.
+Run the watch loop using the bundled `scripts/watch-pr.sh` script. This is critical for two reasons:
 
-Write and execute a script like this:
+1. **Token efficiency** — a single long-running bash process costs far fewer tokens than repeated tool calls with `sleep`.
+2. **Shell quoting safety** — the script uses temp files for the jq filter and GraphQL response, avoiding `|` and control-character parse errors that occur when the loop is inlined as a command string.
 
 ```bash
-PR=<pr_number>
-INTERVAL=<seconds>
-OWNER=<owner>
-REPO=<repo>
-TICK=0
-
-while true; do
-  TICK=$((TICK + 1))
-
-  # Check CI status.
-  # gh pr checks uses `state` (not status/conclusion). Values: SUCCESS, FAILURE,
-  # PENDING, IN_PROGRESS, SKIPPED, NEUTRAL, CANCELLED, TIMED_OUT, ACTION_REQUIRED.
-  CI_JSON=$(gh pr checks $PR --json name,state 2>/dev/null)
-  TOTAL=$(echo "$CI_JSON" | jq 'length')
-  FAILING_JSON=$(echo "$CI_JSON" | jq '[.[] | select(.state == "FAILURE" or .state == "TIMED_OUT" or .state == "CANCELLED" or .state == "ACTION_REQUIRED" or .state == "STARTUP_FAILURE")]')
-  RUNNING_JSON=$(echo "$CI_JSON" | jq '[.[] | select(.state == "IN_PROGRESS" or .state == "PENDING")]')
-  PASSING_JSON=$(echo "$CI_JSON" | jq '[.[] | select(.state == "SUCCESS" or .state == "NEUTRAL" or .state == "SKIPPED")]')
-
-  FAILING=$(echo "$FAILING_JSON" | jq 'length')
-  RUNNING=$(echo "$RUNNING_JSON" | jq 'length')
-  PASSING=$(echo "$PASSING_JSON" | jq 'length')
-
-  FAILING_NAMES=$(echo "$FAILING_JSON" | jq -r '.[].name' 2>/dev/null | tr '\n' ', ' | sed 's/, $//')
-  RUNNING_NAMES=$(echo "$RUNNING_JSON" | jq -r '.[].name' 2>/dev/null | tr '\n' ', ' | sed 's/, $//')
-
-  # Check unresolved BugBot threads
-  UNRESOLVED=$(gh api graphql -f query='
-  {
-    repository(owner: "'"$OWNER"'", name: "'"$REPO"'") {
-      pullRequest(number: '"$PR"') {
-        reviewThreads(first: 100) {
-          nodes {
-            id
-            isResolved
-            comments(first: 1) {
-              nodes { author { login } body }
-            }
-          }
-        }
-      }
-    }
-  }' | jq '[.data.repository.pullRequest.reviewThreads.nodes[] | select(.isResolved == false) | select(.comments.nodes[0].author.login | test("cursor|bugbot|coderabbitai|sourcery|github-actions"; "i"))]')
-
-  UNRESOLVED_COUNT=$(echo "$UNRESOLVED" | jq 'length')
-
-  # Print structured status block every tick so the agent can read state clearly
-  echo "--- [tick $TICK] ---"
-  echo "PR comments (unresolved): $UNRESOLVED_COUNT"
-  echo "CI total:      $TOTAL"
-  echo "CI passing:    $PASSING"
-  echo "CI failing:    $FAILING${FAILING_NAMES:+ ($FAILING_NAMES)}"
-  echo "CI in-progress: $RUNNING${RUNNING_NAMES:+ ($RUNNING_NAMES)}"
-
-  # Compute and print the stop signal so the agent doesn't have to re-derive the logic
-  if [ "$FAILING" -gt 0 ]; then
-    echo "Should stop loop: YES (CI failing)"
-  elif [ "$UNRESOLVED_COUNT" -gt 0 ] && [ "$RUNNING" -eq 0 ] && [ "$TOTAL" -gt 0 ]; then
-    echo "Should stop loop: YES (unresolved comments, CI settled)"
-  elif [ "$TOTAL" -gt 0 ] && [ "$RUNNING" -eq 0 ] && [ "$FAILING" -eq 0 ] && [ "$UNRESOLVED_COUNT" -eq 0 ]; then
-    echo "Should stop loop: YES (all clear)"
-  elif [ "$TOTAL" -eq 0 ]; then
-    echo "Should stop loop: NO (CI not started yet)"
-  else
-    echo "Should stop loop: NO (waiting for $RUNNING in-progress check(s))"
-  fi
-
-  # Exit the loop if action is needed — the agent handles it from here.
-  # Failing checks always warrant a break regardless of what's in progress.
-  if [ "$FAILING" -gt 0 ]; then
-    echo "ACTION:CI_FAILURE"
-    echo "$FAILING_JSON"
-    break
-  fi
-
-  # Don't act on PR comments while CI is still running — wait for it to finish
-  # so we don't push a fix and restart the whole CI queue unnecessarily.
-  # Once everything has settled (nothing in progress) and there are unresolved
-  # comments, it's safe to break out and fix them.
-  if [ "$UNRESOLVED_COUNT" -gt 0 ] && [ "$RUNNING" -eq 0 ] && [ "$TOTAL" -gt 0 ]; then
-    echo "ACTION:BUGBOT_COMMENTS"
-    echo "$UNRESOLVED"
-    break
-  fi
-
-  # All clear — CI ran to completion, nothing failing or in-progress, no unresolved threads.
-  # Require TOTAL > 0 to avoid exiting before CI has even started.
-  if [ "$TOTAL" -gt 0 ] && [ "$RUNNING" -eq 0 ] && [ "$FAILING" -eq 0 ] && [ "$UNRESOLVED_COUNT" -eq 0 ]; then
-    echo "ACTION:ALL_CLEAR"
-    break
-  fi
-
-  sleep $INTERVAL
-done
+bash /path/to/skill/scripts/watch-pr.sh <PR_NUMBER> <OWNER> <REPO> <INTERVAL_SECONDS>
 ```
+
+The skill base directory is provided in the `<skill_content>` block as `Base directory for this skill:`. Construct the full path from it, e.g.:
+
+```bash
+bash ~/.agents/skills/fix-pr-comments/scripts/watch-pr.sh 1234 myorg myrepo 60
+```
+
+The script prints a structured status block each tick and exits with one of:
+- `ACTION:ALL_CLEAR` — CI passed, no unresolved bot threads
+- `ACTION:CI_FAILURE` — one or more checks failed (JSON of failing checks follows)
+- `ACTION:BUGBOT_COMMENTS` — unresolved bot threads with CI settled (JSON of threads follows)
 
 When the script exits with `ACTION:ALL_CLEAR`, report to the user that CI is passing and there are no unresolved BugBot threads, and stop.
 
