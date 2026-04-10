@@ -75,9 +75,9 @@ while true; do
 
   # Check CI status
   CI_JSON=$(gh pr checks $PR --json name,status,conclusion 2>/dev/null)
-  FAILING=$(echo "$CI_JSON" | jq '[.[] | select(.conclusion == "failure")] | length')
+  FAILING=$(echo "$CI_JSON" | jq '[.[] | select(.conclusion == "failure" or .conclusion == "timed_out" or .conclusion == "cancelled" or .conclusion == "action_required" or .conclusion == "startup_failure")] | length')
   RUNNING=$(echo "$CI_JSON" | jq '[.[] | select(.status == "in_progress" or .status == "queued")] | length')
-  PASSING=$(echo "$CI_JSON" | jq '[.[] | select(.conclusion == "success")] | length')
+  TOTAL=$(echo "$CI_JSON" | jq 'length')
 
   # Check unresolved BugBot threads
   UNRESOLVED=$(gh api graphql -f query='
@@ -99,12 +99,12 @@ while true; do
 
   UNRESOLVED_COUNT=$(echo "$UNRESOLVED" | jq 'length')
 
-  echo "[tick $TICK] CI: $PASSING passing, $RUNNING running, $FAILING failing | BugBot threads: $UNRESOLVED_COUNT unresolved"
+  echo "[tick $TICK] CI: $TOTAL total, $RUNNING running, $FAILING failing | BugBot threads: $UNRESOLVED_COUNT unresolved"
 
   # Exit the loop if action is needed — the agent handles it from here
   if [ "$FAILING" -gt 0 ]; then
     echo "ACTION:CI_FAILURE"
-    echo "$CI_JSON" | jq '[.[] | select(.conclusion == "failure")]'
+    echo "$CI_JSON" | jq '[.[] | select(.conclusion == "failure" or .conclusion == "timed_out" or .conclusion == "cancelled" or .conclusion == "action_required" or .conclusion == "startup_failure")]'
     break
   fi
 
@@ -114,8 +114,9 @@ while true; do
     break
   fi
 
-  # All clear — CI done and no unresolved threads
-  if [ "$RUNNING" -eq 0 ] && [ "$UNRESOLVED_COUNT" -eq 0 ]; then
+  # All clear — CI ran, nothing is failing or still running, no unresolved threads
+  # neutral/skipped/success all count as acceptable; we only block on the failure states above
+  if [ "$TOTAL" -gt 0 ] && [ "$RUNNING" -eq 0 ] && [ "$FAILING" -eq 0 ] && [ "$UNRESOLVED_COUNT" -eq 0 ]; then
     echo "ACTION:ALL_CLEAR"
     break
   fi
