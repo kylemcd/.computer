@@ -40,7 +40,11 @@ while true; do
   TICK=$((TICK + 1))
 
   # ── CI checks ──────────────────────────────────────────────────────────
-  CI_JSON=$(gh pr checks "$PR" --json name,state 2>/dev/null || echo "[]")
+  # Exclude Graphite's mergeability check — it is not a real CI check and
+  # stays "in_progress" indefinitely on stacked PRs, blocking the loop.
+  CI_JSON=$(gh pr checks "$PR" --json name,state 2>/dev/null \
+    | jq '[.[] | select(.name | test("Graphite"; "i") | not)]' \
+    || echo "[]")
   TOTAL=$(echo "$CI_JSON" | jq 'length')
 
   FAILING_JSON=$(echo "$CI_JSON" | jq \
