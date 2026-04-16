@@ -32,15 +32,22 @@ Use this when the user wants the agent to monitor a PR (or stack of PRs) and aut
 
 ```bash
 GT_AVAILABLE=$(which gt > /dev/null 2>&1 && echo "true" || echo "false")
+GH_STACK_AVAILABLE=$(gh extension list 2>/dev/null | grep -q "gh-stack" && echo "true" || echo "false")
 ```
 
-If `GT_AVAILABLE` is true, check whether there's a stack:
+If `GT_AVAILABLE` is true, check whether there's a Graphite stack:
 
 ```bash
 gt log --short 2>/dev/null
 ```
 
-If there are multiple PRs in the stack, collect all their numbers. Otherwise treat it as a single PR.
+If `GH_STACK_AVAILABLE` is true and Graphite is not in use, check whether there's a gh-stack stack:
+
+```bash
+gh stack view --short 2>/dev/null
+```
+
+If there are multiple PRs in the stack (via either tool), collect all their numbers. Otherwise treat it as a single PR.
 
 ### Ask how often to poll
 
@@ -280,20 +287,22 @@ For each skipped thread, show inline below the fixes (no question needed):
 SKIP — Comment by @<author> on <file>:<line>: <one-line reason>
 ```
 
-After showing everything, check Graphite availability and the last-used tool preference:
+After showing everything, check tool availability and the last-used tool preference:
 
 ```bash
 GT_AVAILABLE=$(which gt > /dev/null 2>&1 && echo "true" || echo "false")
-GT_PREFERENCE=$(git config --local fix-pr-comments.pushtool 2>/dev/null)
+GH_STACK_AVAILABLE=$(gh extension list 2>/dev/null | grep -q "gh-stack" && echo "true" || echo "false")
+PUSH_PREFERENCE=$(git config --local fix-pr-comments.pushtool 2>/dev/null)
 ```
 
-Then ask a single question that combines approval and push method. If `GT_AVAILABLE` is `false`, omit the Graphite option entirely:
+Then ask a single question that combines approval and push method. Omit any option whose tool is not available:
 
 ```
 question: "Do these fixes look correct?"
 options:
-  - "Commit and push with Graphite" (recommended if GT_AVAILABLE and GT_PREFERENCE is "gt" or unset)
-  - "Commit and push with plain git" (recommended if GT_PREFERENCE is "git", or GT_AVAILABLE is false)
+  - "Commit and push with Graphite" (only if GT_AVAILABLE; recommended if PUSH_PREFERENCE is "gt" or unset and GT_AVAILABLE)
+  - "Commit and push with gh stack" (only if GH_STACK_AVAILABLE; recommended if PUSH_PREFERENCE is "gh-stack")
+  - "Commit and push with plain git" (always available; recommended if PUSH_PREFERENCE is "git", or neither GT nor gh-stack is available)
   - "Request changes"
 ```
 
@@ -302,7 +311,7 @@ If they request changes, ask them to describe what they want, apply the changes,
 After the user picks a push method, save their choice so it's recommended first next time:
 
 ```bash
-git config --local fix-pr-comments.pushtool <git|gt>
+git config --local fix-pr-comments.pushtool <git|gt|gh-stack>
 ```
 
 Use the answer to choose the right flow below. Never use `git add .` — stage only the files that belong to each individual fix.
@@ -368,6 +377,26 @@ gt ss
 ```
 
 Do not run `gt submit` or `gt ss` per-fix or per-branch — commit everything first, then submit once at the end.
+
+### gh stack
+
+For each approved fix, on the correct branch:
+
+```bash
+git add <specific files>
+git commit -m "fix: <concise description>
+
+Addresses comment by @<author>: <one-line summary of the issue>"
+```
+
+After **all** fixes across all branches are committed, push and update PRs in one shot:
+
+```bash
+gh stack push
+gh stack submit
+```
+
+`gh stack push` uses `--force-with-lease --atomic` to safely update all rebased branches. `gh stack submit` updates the linked PRs on GitHub. Do not run these per-fix or per-branch — commit everything first, then push once at the end.
 
 ---
 

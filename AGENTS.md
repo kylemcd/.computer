@@ -70,7 +70,7 @@ To promote a draft skill to live: move it into `.config/agents-root/.agents/skil
 - **emil-design-eng** — UI polish and component design philosophy
 - **feedback-loop** — self-validate work with deterministic feedback loops
 - **fix-pr-comments** — address unresolved GitHub PR review threads
-- **gh-stack** — stacked PRs without Graphite
+- **gh-stack** — stacked PRs with GitHub's native `gh stack` CLI extension
 - **graphite** — stacked PRs with Graphite (gt)
 - **json-canvas** — create/edit Obsidian Canvas files
 - **obsidian-bases** — create/edit Obsidian Bases (.base files)
