@@ -79,6 +79,7 @@ To promote a draft skill to live: move it into `.config/agents-root/.agents/skil
 - **skill-creator** — create/modify/eval agent skills
 - **agent-browser** — browser automation via `agent-browser` CLI with dev server management, auth state, and UI verification
 - **write-pr-description** — compose PR description content based on repo template and diff
+- **worktree** — create/manage git worktrees with per-project copy/symlink/hook config from `~/.agent/memory/worktree-projects.json`
 
 ## Agent Memory
 
@@ -89,6 +90,7 @@ Each file is a named JSON blob written by tools/extensions and read by agent ski
 | File | Written by | Read by | Contents |
 |---|---|---|---|
 | `agent-browser-projects.json` | Manually edited | agent-browser skill | Per-project config: dev server (command, cwd, port, readyPattern), auth (stateFile, refreshInstructions, sourceOrigin) |
+| `worktree-projects.json` | Manually edited / worktree skill | worktree skill | Per-project worktree config: files to copy, dirs to symlink, postCreate/preDelete hooks. `_worktrees` key stores per-worktree metadata (stacking tool) keyed by absolute path. |
 
 ### Adding new memory files
 
