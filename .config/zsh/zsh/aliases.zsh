@@ -95,4 +95,14 @@ wtr()     { git fetch origin "$1" && git worktree add --detach "$WT_DIR/${2:-${1
 wtrm()    { git worktree remove "$WT_DIR/$1" && [ "${2:-}" != "-k" ] && git branch -d "$1" 2>/dev/null; }
 wtl()     { git worktree list; }
 wtcd()    { cd "$WT_DIR/$1"; }
+# interactive worktree picker — fuzzy select then cd
+wts() {
+  local selected
+  selected=$(git worktree list | tail -n +2 | fzf \
+    --prompt="worktree> " \
+    --preview="git -C {1} log --oneline -10 2>/dev/null" \
+    --preview-window=right:50% \
+    | awk '{print $1}')
+  [[ -n "$selected" ]] && cd "$selected"
+}
 wtprune() { git worktree prune -v; }

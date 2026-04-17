@@ -84,7 +84,26 @@ If no matching project entry exists, proceed without config and mention to the u
    bash ~/.agents/skills/worktree/scripts/setup-worktree.sh <source_repo_path> <new_worktree_path>
    ```
    Both paths must be absolute. The script is a no-op if no config entry matches.
-3. **Tell the user** the worktree path so they can open it.
+3. **Record the git tool — this step is mandatory and blocks completion.** A worktree is not fully created until `gitTool` is written to memory. Do not report success to the user until this is done.
+
+   Use the `question` tool to ask — do not default, do not skip, do not infer from context:
+   ```
+   question: "Which git tool do you want to use in this worktree?"
+   options:
+     - "Graphite (gt)"
+     - "GitHub stacking (gh stack)"
+     - "Plain git"
+   ```
+   Then immediately write the answer:
+   ```bash
+   bash ~/.agents/skills/worktree/scripts/memory.sh set-tool /abs/path/to/new-worktree <graphite|gh-stack|git>
+   ```
+   Verify it was written:
+   ```bash
+   bash ~/.agents/skills/worktree/scripts/memory.sh get-tool /abs/path/to/new-worktree
+   # must return non-empty output — if empty, something went wrong, try again
+   ```
+4. **Tell the user** the worktree path so they can open it.
 
 ### Check out an existing remote branch
 
@@ -132,24 +151,7 @@ Worktrees keep each stack isolated — useful for reviewing or editing lower lay
 
 ### Starting a stack in a fresh worktree
 
-After creating the worktree, ask which stacking tool to use:
-
-```
-question: "Which stacking tool do you want to use?"
-options:
-  - "Graphite (gt)"
-  - "GitHub stacking (gh stack)"
-  - "Plain git"
-```
-
-Then **write the choice to memory** using the memory script:
-
-```bash
-bash ~/.agents/skills/worktree/scripts/memory.sh set-tool /abs/path/to/new-worktree graphite
-# or: gh-stack, git
-```
-
-Then proceed with the chosen tool:
+After creating the worktree (including the git tool question from the creation sequence), proceed with the chosen tool:
 
 **With Graphite:** the new worktree branch will be untracked — fix before stacking:
 
