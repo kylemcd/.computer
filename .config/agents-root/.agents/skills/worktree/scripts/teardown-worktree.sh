@@ -27,7 +27,8 @@ fi
 
 PROJECT_KEY=$(jq -r --arg path "$SOURCE" '
   to_entries[]
-  | select($path | contains(.key))
+  | select(.key | startswith("_") | not)
+  | select(.key as $k | $path | test($k))
   | .key
 ' "$CONFIG_FILE" | head -1)
 

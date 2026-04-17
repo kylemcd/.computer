@@ -16,6 +16,16 @@ allowed-tools:
 
 Manage git worktrees for isolated development. A worktree is a separate checkout of the same repo in a different directory — no stashing, no context switching, no dirty state bleed between tasks.
 
+## First-time setup
+
+If this is a new machine or the user hasn't used this skill before, run the install script first:
+
+```bash
+bash ~/.agents/skills/worktree/scripts/install.sh
+```
+
+It checks dependencies (git, jq, fzf), creates `~/.agent/memory/` and `~/.local/worktree/`, initializes `worktree-projects.json`, and verifies OpenCode permissions. Safe to re-run.
+
 ## Shell Aliases Available
 
 The user has these functions in their shell (from `~/.config/zsh/zsh/aliases.zsh`):
@@ -31,7 +41,7 @@ The user has these functions in their shell (from `~/.config/zsh/zsh/aliases.zsh
 
 `WT_DIR` defaults to `..` (sibling of the current repo directory). So for a repo at `~/projects/myapp`, worktrees land at `~/projects/<branch-name>`.
 
-**OpenCode-created worktrees** land at `~/.local/share/opencode/worktree/<repo-hash>/<branch-name>/`. This path is pre-permitted in `opencode.json` so no approval prompts appear.
+**Agent-created worktrees** land at `~/.local/worktree/<repo-name>/<branch-name>/`. This path is pre-permitted in `opencode.json` so no approval prompts appear.
 
 ---
 
@@ -46,9 +56,19 @@ Match the current repo to a project key by checking if the repo's path contains 
 ### Config shape
 
 ```json
-"_worktrees": {
-  "/abs/path/to/new-worktree": {
-    "gitTool": "graphite"
+{
+  "my-org/my-repo": {
+    "copyFiles": [".env", "backend/dev.env"],
+    "symlinkDirs": ["node_modules"],
+    "hooks": {
+      "postCreate": ["yarn install"],
+      "preDelete": ["docker compose down"]
+    }
+  },
+  "_worktrees": {
+    "/abs/path/to/worktree": {
+      "gitTool": "graphite"
+    }
   }
 }
 ```
@@ -76,8 +96,8 @@ If no matching project entry exists, proceed without config and mention to the u
    wt my-feature           # new branch from main
    wt my-feature some-base # new branch from some-base
 
-   # Raw git (e.g. for a specific path)
-   git worktree add -b my-feature <path> main
+   # Raw git — use ~/.local/worktree/<repo-name>/<branch> as the path
+   git worktree add -b my-feature ~/.local/worktree/<repo-name>/my-feature main
    ```
 2. **Run the setup script** — it reads `~/.agent/memory/worktree-projects.json`, matches the project, copies files, creates symlinks, and runs postCreate hooks:
    ```bash
@@ -194,7 +214,7 @@ Run this to see all worktrees for the current repo:
 git worktree list --porcelain
 ```
 
-Scan the conversation history for file paths or `workdir` values that don't match the current CWD. If prior tool calls reference a path under `~/.local/share/opencode/worktree/` or a sibling directory (e.g. `../my-feature`), that's the worktree this session was operating in.
+Scan the conversation history for file paths or `workdir` values that don't match the current CWD. If prior tool calls reference a path under `~/.local/worktree/` or a sibling directory (e.g. `../my-feature`), that's the worktree this session was operating in.
 
 Once identified, **set `workdir` to the worktree path on every Bash, Read, Edit, and Write tool call** for the rest of the session. Do not `cd` — use the `workdir` parameter directly. State this explicitly to the user:
 

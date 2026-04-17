@@ -9,7 +9,8 @@
       "/tmp/**": "allow",
       "~/.agent/**": "allow",
       "~/.agent-browser/**": "allow",
-      "~/.local/share/opencode/worktree/**": "allow"
+      "~/.local/share/opencode/worktree/**": "allow",
+      "~/.local/worktree/**": "allow"
     }
   },
   "mcp": {
