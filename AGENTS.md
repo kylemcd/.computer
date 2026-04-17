@@ -80,6 +80,7 @@ To promote a draft skill to live: move it into `.config/agents-root/.agents/skil
 - **agent-browser** — browser automation via `agent-browser` CLI with dev server management, auth state, and UI verification
 - **write-pr-description** — compose PR description content based on repo template and diff
 - **worktree** — create/manage git worktrees with per-project copy/symlink/hook config from `~/.agent/memory/worktree-projects.json`
+- **auto-build** — end-to-end autonomous implementation: Linear ticket → worktree → code → self-review → PR → babysit CI/comments
 
 ## Agent Memory
 

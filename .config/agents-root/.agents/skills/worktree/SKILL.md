@@ -75,7 +75,18 @@ If no matching project entry exists, proceed without config and mention to the u
 
 ### Full creation sequence
 
-1. **Create the worktree:**
+1. **Ensure main is up to date**, then create the worktree. Use Graphite if
+   available, otherwise plain git:
+   ```bash
+   # Preferred — if gt is installed
+   gt sync
+
+   # Fallback — plain git
+   git fetch origin main
+   git checkout main && git rebase origin/main
+   ```
+   If the rebase fails (conflicts), stop and tell the user rather than
+   branching from a stale or broken base. Then create the worktree:
    ```bash
    git worktree add -b my-feature ~/.local/worktree/<repo-name>/my-feature main
    ```
