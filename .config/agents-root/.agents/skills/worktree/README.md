@@ -14,24 +14,6 @@ Checks dependencies, creates `~/.agent/memory/worktree-projects.json`, and creat
 
 ---
 
-## Shell commands
-
-These are available in your terminal after stowing the dotfiles:
-
-| Command | What it does |
-|---------|-------------|
-| `wt <branch> [base]` | Create a new worktree + branch from `base` (default: `main`) |
-| `wtr <remote-branch> [dir]` | Check out an existing remote branch into a worktree |
-| `wtrm <branch> [-k]` | Remove a worktree; deletes the local branch unless `-k` is passed |
-| `wtl` | List all worktrees for the current repo |
-| `wtcd <name>` | `cd` into a worktree by name |
-| `wts` | Fuzzy-pick a worktree with fzf and `cd` into it |
-| `wtprune` | Prune stale worktree refs |
-
-> Note: these are shell functions — they're for you in the terminal, not for the agent. The agent always uses raw `git worktree` commands.
-
----
-
 ## Per-project config
 
 Add project entries to `~/.agent/memory/worktree-projects.json` to automate setup when a worktree is created:

@@ -1,6 +1,6 @@
 ---
 name: worktree
-description: Manage git worktrees for isolated development — creating, switching, listing, and removing worktrees. Use this skill whenever the user mentions worktrees, wants to work on multiple branches simultaneously, asks to spin up an isolated environment for a branch or PR, or uses the wt/wtr/wtrm/wtl/wtcd/wtprune commands. Also use when the graphite skill needs a clean branch environment — worktrees integrate with stacked PRs to keep each stack layer isolated.
+description: Manage git worktrees for isolated development — creating, switching, listing, and removing worktrees. Use this skill whenever the user mentions worktrees, wants to work on multiple branches simultaneously, asks to spin up an isolated environment for a branch or PR, or wants to isolate a stacked PR workflow. Also use when the graphite skill or gh-stack skill needs a clean branch environment.
 allowed-tools:
   - "Bash(git worktree *)"
   - "Bash(git fetch *)"
@@ -26,22 +26,7 @@ bash ~/.agents/skills/worktree/scripts/install.sh
 
 It checks dependencies (git, jq, fzf), creates `~/.agent/memory/` and `~/.local/worktree/`, initializes `worktree-projects.json`, and verifies OpenCode permissions. Safe to re-run.
 
-## Shell Aliases Available
-
-The user has these functions in their shell (from `~/.config/zsh/zsh/aliases.zsh`):
-
-| Command | What it does |
-|---------|-------------|
-| `wt <branch> [base]` | New worktree + branch off `base` (default: `main`) |
-| `wtr <remote-branch> [dir]` | Fetch and check out an existing remote branch (detached) |
-| `wtrm <branch> [-k]` | Remove worktree; also deletes the local branch unless `-k` is passed |
-| `wtl` | List all worktrees |
-| `wtcd <name>` | `cd` into a worktree by name |
-| `wtprune` | Prune stale worktree refs |
-
-`WT_DIR` defaults to `..` (sibling of the current repo directory). So for a repo at `~/projects/myapp`, worktrees land at `~/projects/<branch-name>`.
-
-**Agent-created worktrees** land at `~/.local/worktree/<repo-name>/<branch-name>/`. This path is pre-permitted in `opencode.json` so no approval prompts appear.
+**Agent-created worktrees** land at `~/.local/worktree/<repo-name>/<branch-name>/`.
 
 ---
 
@@ -90,13 +75,8 @@ If no matching project entry exists, proceed without config and mention to the u
 
 ### Full creation sequence
 
-1. **Create the worktree** (via shell alias or raw git):
+1. **Create the worktree:**
    ```bash
-   # Using shell alias (sibling dir layout)
-   wt my-feature           # new branch from main
-   wt my-feature some-base # new branch from some-base
-
-   # Raw git — use ~/.local/worktree/<repo-name>/<branch> as the path
    git worktree add -b my-feature ~/.local/worktree/<repo-name>/my-feature main
    ```
 2. **Run the setup script** — it reads `~/.agent/memory/worktree-projects.json`, matches the project, copies files, creates symlinks, and runs postCreate hooks:
@@ -128,11 +108,8 @@ If no matching project entry exists, proceed without config and mention to the u
 ### Check out an existing remote branch
 
 ```bash
-# Fetches origin/feat/login, creates a dir with slashes converted to dashes
-wtr feat/login
-
-# With a custom directory name
-wtr feat/login login-review
+git fetch origin feat/login
+git worktree add --detach ~/.local/worktree/<repo-name>/feat-login origin/feat/login
 ```
 
 ---
@@ -147,20 +124,23 @@ wtr feat/login login-review
    ```bash
    bash ~/.agents/skills/worktree/scripts/memory.sh remove /abs/path/to/worktree
    ```
-3. **Remove**:
+3. **Remove the worktree and branch:**
    ```bash
-   wtrm my-feature     # removes worktree + deletes local branch
-   wtrm my-feature -k  # removes worktree, keeps branch
+   git worktree remove /abs/path/to/worktree
+   git branch -d my-feature        # omit to keep the branch
    ```
-4. Prune stale refs if needed: `wtprune`
+4. **Prune stale refs:**
+   ```bash
+   git worktree prune
+   ```
 
 ---
 
 ## Housekeeping
 
 ```bash
-wtl        # list all worktrees and their HEADs
-wtprune    # clean up refs to deleted worktrees
+git worktree list           # list all worktrees and their HEADs
+git worktree prune -v       # clean up refs to deleted worktrees
 ```
 
 ---
@@ -177,10 +157,15 @@ After creating the worktree (including the git tool question from the creation s
 
 ```bash
 gt track -p main
-# then proceed with gt create per the graphite skill
+# then proceed with gt create
+# if the graphite skill is available, load it for the full stacking workflow
 ```
 
-**With gh stack:** see the gh-stack skill.
+**With gh stack:**
+```bash
+# if the gh-stack skill is available, load it for the full stacking workflow
+# otherwise: gh stack create, gh stack push, gh stack submit
+```
 
 **With plain git:** use regular branches and `gh pr create` per PR.
 
@@ -188,16 +173,17 @@ gt track -p main
 
 ```bash
 # Check out the top-of-stack branch (detached, read-only)
-wtr feat/auth-top auth-review
-wtcd auth-review
+git fetch origin feat/auth-top
+git worktree add --detach ~/.local/worktree/<repo-name>/auth-review origin/feat/auth-top
 gt ls    # inspect the stack from here
 ```
 
 ### Cleanup after a merged stack
 
 ```bash
-wtrm auth-bugfix   # remove worktree + branch
-wtprune            # prune any leftover refs
+git worktree remove ~/.local/worktree/<repo-name>/auth-bugfix
+git branch -d auth-bugfix
+git worktree prune
 ```
 
 ---
@@ -270,7 +256,7 @@ If the path from history no longer appears in `git worktree list`, the worktree 
 
 If the user wants to add or change worktree config for a project, edit `~/.agent/memory/worktree-projects.json`. This file is **not** version controlled (lives outside any repo) — it's persistent agent memory. Always read it fresh at the start of each worktree operation, never cache it.
 
-Also document any new entry in the `~/.computer/AGENTS.md` memory table if it introduces a new file.
+If your dotfiles repo has an AGENTS.md that documents agent memory files, update it to reflect new entries.
 
 ---
 
@@ -279,4 +265,4 @@ Also document any new entry in the `~/.computer/AGENTS.md` memory table if it in
 - Worktrees share the same `.git` dir — commits, fetches, and branch updates are visible in all worktrees immediately.
 - You can't check out the same branch in two worktrees at once. If you get "already checked out", use `wtr` (detached) or create a new branch.
 - Long-running builds work well in worktrees — start a build in one while editing in another.
-- When in doubt about which worktree you're in: `wtl`.
+- When in doubt about which worktree you're in: `git worktree list`.
