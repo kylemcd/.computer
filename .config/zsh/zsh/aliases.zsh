@@ -88,15 +88,15 @@ imgpaste() {
 # kill the port number
 kp() { lsof -ti :$1 | xargs kill -9; }
 
-# worktrees
+# worktrees (legacy git helpers — Worktrunk's wt command is preferred)
+# These are kept as fallbacks. Worktrunk handles: switch, list, remove, merge.
 WT_DIR="${WT_DIR:-..}"
-wt()      { git worktree add -b "$1" "$WT_DIR/$1" "${2:-main}"; }
-wtr()     { git fetch origin "$1" && git worktree add --detach "$WT_DIR/${2:-${1//\//-}}" "origin/$1"; }
-wtrm()    { git worktree remove "$WT_DIR/$1" && [ "${2:-}" != "-k" ] && git branch -d "$1" 2>/dev/null; }
-wtl()     { git worktree list; }
-wtcd()    { cd "$WT_DIR/$1"; }
+wtadd()    { git worktree add -b "$1" "$WT_DIR/$1" "${2:-main}"; }
+wtrm()     { git worktree remove "$WT_DIR/$1" && [ "${2:-}" != "-k" ] && git branch -d "$1" 2>/dev/null; }
+wtpr()     { git fetch origin "$1" && git worktree add --detach "$WT_DIR/${2:-${1//\//-}}" "origin/$1"; }
+wtcd()     { cd "$WT_DIR/$1"; }
 # interactive worktree picker — fuzzy select then cd
-wts() {
+wtpick() {
   local selected
   selected=$(git worktree list | tail -n +2 | fzf \
     --prompt="worktree> " \
@@ -106,3 +106,36 @@ wts() {
   [[ -n "$selected" ]] && cd "$selected"
 }
 wtprune() { git worktree prune -v; }
+
+# Clean up worktrees that are merged/integrated into main.
+# Skips current worktree, worktrees with uncommitted changes, and main.
+# Pass -f to also force-remove worktrees with untracked files.
+wtclean() {
+  local force_flag=""
+  [[ "${1:-}" == "-f" ]] && force_flag="--force"
+
+  local branches
+  branches=$(wt list --format=json 2>/dev/null \
+    | jq -r '.[] | select(
+        (.main_state == "integrated" or .main_state == "empty") and
+        .is_current == false and
+        .is_main == false and
+        (.working_tree.staged == false) and
+        (.working_tree.modified == false)
+      ) | .branch')
+
+  if [[ -z "$branches" ]]; then
+    echo "No merged worktrees to clean up."
+    return 0
+  fi
+
+  echo "Worktrees to remove:"
+  echo "$branches" | sed 's/^/  /'
+  echo
+  read -q "REPLY?Remove these? [y/N] " && echo || { echo "Cancelled."; return 1; }
+
+  echo "$branches" | while read -r branch; do
+    echo "Removing $branch..."
+    wt remove $force_flag "$branch"
+  done
+}

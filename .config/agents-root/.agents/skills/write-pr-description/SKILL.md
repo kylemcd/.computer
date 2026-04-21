@@ -43,6 +43,16 @@ ls .github/pull_request_template.md 2>/dev/null || ls .github/PULL_REQUEST_TEMPL
 If a template exists, read it. Use its headings and structure as the skeleton for your output.
 Don't ignore sections — fill them in or explicitly note "N/A" if a section truly doesn't apply.
 
+Also check if a PR already exists for this branch and read the current description:
+
+```bash
+gh pr view --json body --jq '.body' 2>/dev/null
+```
+
+If a description already exists, use it as the starting point. Preserve any sections that are
+still accurate, update sections that are stale, and add anything new from the diff that isn't
+covered. Don't discard human-written content — only replace what's actually wrong or missing.
+
 ## Writing the description
 
 **Tone**: Talk like you're telling a teammate what you did. Not formal, not padded. Direct.
