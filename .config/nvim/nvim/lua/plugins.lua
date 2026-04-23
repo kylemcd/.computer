@@ -1,6 +1,6 @@
 -- Plugin Manager Setup
 local lazypath = vim.fn.stdpath("data") .. "/lazy/lazy.nvim"
-if not vim.loop.fs_stat(lazypath) then
+if not vim.uv.fs_stat(lazypath) then
 	vim.fn.system({
 		"git",
 		"clone",
@@ -32,30 +32,10 @@ require("lazy").setup({
 					yaml = { "prettier" },
 					markdown = { "prettier" },
 				},
-				format_on_save = {
-					timeout_ms = 500,
-					lsp_fallback = true,
-				},
-				formatters = {
-					stylua = {
-						command = "stylua",
-					},
-					black = {
-						command = "black",
-						args = { "--line-length", "88", "$FILENAME" },
-					},
-					isort = {
-						command = "isort",
-						args = { "$FILENAME" },
-					},
-					prettier = {
-						command = "prettier",
-						args = {
-							"--stdin-filepath",
-							"$FILENAME",
-						},
-					},
-				},
+			format_on_save = {
+				timeout_ms = 500,
+				lsp_format = "fallback",
+			},
 			})
 
 			-- Format command
@@ -68,30 +48,47 @@ require("lazy").setup({
 						["end"] = { args.line2, end_line:len() },
 					}
 				end
-				require("conform").format({ async = true, lsp_fallback = true, range = range })
+				require("conform").format({ async = true, lsp_format = "fallback", range = range })
 			end, { range = true })
 		end,
 	},
 	{
 		"mason-org/mason.nvim",
+		opts = {},
+	},
+	{
+		"williamboman/mason-lspconfig.nvim",
 		opts = {
 			ensure_installed = {
-				-- Formatters
+				"ts_ls",
+				"lua_ls",
+			},
+			automatic_enable = false,
+		},
+		dependencies = {
+			"mason-org/mason.nvim",
+			"neovim/nvim-lspconfig",
+		},
+	},
+	{
+		"WhoIsSethDaniel/mason-tool-installer.nvim",
+		opts = {
+			ensure_installed = {
 				"stylua",
 				"black",
 				"isort",
 				"prettier",
-				-- LSP Servers
-				"typescript-language-server",
-				"lua-language-server",
 			},
 		},
+		dependencies = { "mason-org/mason.nvim" },
 	},
 	{
-		"williamboman/mason-lspconfig.nvim",
-		dependencies = {
-			"mason-org/mason.nvim",
-			"neovim/nvim-lspconfig",
+		"folke/lazydev.nvim",
+		ft = "lua",
+		opts = {
+			library = {
+				{ path = "${3rd}/luv/library", words = { "vim%.uv" } },
+			},
 		},
 	},
 	{
@@ -101,7 +98,6 @@ require("lazy").setup({
 			"hrsh7th/cmp-nvim-lsp",
 		},
 		config = function()
-			local lspconfig = require("lspconfig")
 			local cmp_nvim_lsp = require("cmp_nvim_lsp")
 
 			-- Configure diagnostic display
@@ -175,57 +171,56 @@ require("lazy").setup({
 				end,
 			})
 
-			-- Add completion capabilities
-			local capabilities = cmp_nvim_lsp.default_capabilities()
-
-			-- Keymaps for LSP
-			local on_attach = function(client, bufnr)
-				local opts = { buffer = bufnr, silent = true }
-
-				-- Go to definition
-				vim.keymap.set("n", "gd", vim.lsp.buf.definition, opts)
-				vim.keymap.set("n", "gD", vim.lsp.buf.declaration, opts)
-
-				-- Hover documentation
-				vim.keymap.set("n", "K", vim.lsp.buf.hover, opts)
-
-				-- Implementation and references
-				vim.keymap.set("n", "gi", vim.lsp.buf.implementation, opts)
-				vim.keymap.set("n", "gr", vim.lsp.buf.references, opts)
-
-				-- Code actions
-				vim.keymap.set("n", "<leader>ca", vim.lsp.buf.code_action, opts)
-
-				-- Rename
-				vim.keymap.set("n", "<leader>rn", vim.lsp.buf.rename, opts)
-
-				-- Diagnostics
-				vim.keymap.set("n", "[d", vim.diagnostic.goto_prev, opts)
-				vim.keymap.set("n", "]d", vim.diagnostic.goto_next, opts)
-				vim.keymap.set("n", "<leader>e", vim.diagnostic.open_float, opts)
-			end
-
-			-- TypeScript/JavaScript
-			lspconfig.ts_ls.setup({
-				capabilities = capabilities,
-				on_attach = on_attach,
+			-- Inject cmp capabilities into all servers
+			vim.lsp.config("*", {
+				capabilities = cmp_nvim_lsp.default_capabilities(),
 			})
 
-			-- Lua
-			lspconfig.lua_ls.setup({
-				capabilities = capabilities,
-				on_attach = on_attach,
+			-- LSP keymaps via LspAttach autocmd
+			vim.api.nvim_create_autocmd("LspAttach", {
+				group = vim.api.nvim_create_augroup("UserLspKeymaps", { clear = true }),
+				callback = function(event)
+					local opts = { buffer = event.buf, silent = true }
+
+					-- Go to definition
+					vim.keymap.set("n", "gd", vim.lsp.buf.definition, opts)
+					vim.keymap.set("n", "gD", vim.lsp.buf.declaration, opts)
+
+					-- Hover documentation
+					vim.keymap.set("n", "K", vim.lsp.buf.hover, opts)
+
+					-- Implementation and references
+					vim.keymap.set("n", "gi", vim.lsp.buf.implementation, opts)
+					vim.keymap.set("n", "gr", vim.lsp.buf.references, opts)
+
+					-- Code actions
+					vim.keymap.set("n", "<leader>ca", vim.lsp.buf.code_action, opts)
+
+					-- Rename
+					vim.keymap.set("n", "<leader>rn", vim.lsp.buf.rename, opts)
+
+					-- Diagnostics
+					vim.keymap.set("n", "[d", vim.diagnostic.goto_prev, opts)
+					vim.keymap.set("n", "]d", vim.diagnostic.goto_next, opts)
+					vim.keymap.set("n", "<leader>e", vim.diagnostic.open_float, opts)
+				end,
+			})
+
+			-- TypeScript/JavaScript
+			vim.lsp.config("ts_ls", {})
+			vim.lsp.enable("ts_ls")
+
+			-- Lua (lazydev.nvim handles workspace library)
+			vim.lsp.config("lua_ls", {
 				settings = {
 					Lua = {
 						diagnostics = {
 							globals = { "vim" },
 						},
-						workspace = {
-							library = vim.api.nvim_get_runtime_file("", true),
-						},
 					},
 				},
 			})
+			vim.lsp.enable("lua_ls")
 		end,
 	},
 	{
@@ -260,12 +255,13 @@ require("lazy").setup({
 					["<C-e>"] = cmp.mapping.abort(),
 					["<CR>"] = cmp.mapping.confirm({ select = false }),
 				}),
-				sources = cmp.config.sources({
-					{ name = "nvim_lsp" },
-					{ name = "luasnip" },
-					{ name = "buffer" },
-					{ name = "path" },
-				}),
+			sources = cmp.config.sources({
+				{ name = "lazydev", group_index = 0 },
+				{ name = "nvim_lsp" },
+				{ name = "luasnip" },
+				{ name = "buffer" },
+				{ name = "path" },
+			}),
 			})
 		end,
 	},
@@ -274,6 +270,7 @@ require("lazy").setup({
 	},
 	{
 		"nvim-treesitter/nvim-treesitter",
+		branch = "main",
 		lazy = false,
 		build = ":TSUpdate",
 		config = function()
@@ -448,7 +445,7 @@ require("lazy").setup({
 		config = function()
 			require("zen-mode").setup({
 				window = {
-					width = 1,
+					width = 120,
 				},
 			})
 		end,
@@ -459,16 +456,10 @@ require("lazy").setup({
 		build = function()
 			require("fff.download").download_or_build_binary()
 		end,
-		opts = {
-			debug = {
-				enabled = true,
-				show_scores = true,
-			},
-		},
+		opts = {},
 	},
 	{
 		"nvim-telescope/telescope.nvim",
-		tag = "0.1.4",
 		dependencies = {
 			"nvim-lua/plenary.nvim",
 		},

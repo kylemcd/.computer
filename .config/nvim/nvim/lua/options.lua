@@ -91,7 +91,7 @@ vim.keymap.set('n', 'fg', function() require('fff').live_grep() end, { desc = 'L
 vim.keymap.set('n', 'fz', function() require('fff').live_grep({ grep = { modes = { 'fuzzy', 'plain' } } }) end, { desc = 'Fuzzy grep (fff)' })
 vim.keymap.set('n', 'fc', function() require('fff').live_grep({ query = vim.fn.expand('<cword>') }) end, { desc = 'Search word under cursor (fff)' })
 
--- Telescope - buffers, help, and other pickers
+-- fff - additional mappings
 vim.keymap.set('n', '<leader>ps', function() require('fff').live_grep() end, { desc = 'Live grep (fff)' })
 vim.keymap.set('n', '<leader>pb', function() require('telescope.builtin').buffers() end, {})
 vim.keymap.set('n', '<leader>ph', function() require('telescope.builtin').help_tags() end, {})
