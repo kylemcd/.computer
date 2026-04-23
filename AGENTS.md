@@ -91,6 +91,8 @@ Each file is a named JSON blob written by tools/extensions and read by agent ski
 | File | Written by | Read by | Contents |
 |---|---|---|---|
 | `agent-browser-projects.json` | Manually edited | agent-browser skill | Per-project config: dev server (command, cwd, port, readyPattern), auth (stateFile, refreshInstructions, sourceOrigin) |
+| `agent-browser-playbooks/index.json` | agent-browser skill | agent-browser skill | Index of browser playbooks. Each entry: `description`, `repos` (array of `org/repo`), `when_to_use` (plain-English guidance on which tasks benefit), `playbook` (path to `.md`), `last_updated` |
+| `agent-browser-playbooks/<key>.md` | agent-browser skill | agent-browser skill | Per-project browser playbook: routes, complex flows, shortcuts/tricks, auth notes. Loaded on demand when index entry matches current repo and task. |
 | `worktree-projects.json` | Manually edited / worktree skill | worktree skill | Per-project worktree config: files to copy, dirs to symlink, postCreate/preDelete hooks. `_worktrees` key stores per-worktree metadata (stacking tool) keyed by absolute path. |
 
 ### Adding new memory files

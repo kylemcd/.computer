@@ -21,6 +21,52 @@ Use this skill to visually verify UI changes, interact with running web apps, an
 automate browser tasks. The general flow is: ensure the dev server is running for
 the right codebase → load auth → navigate → snapshot/screenshot → report.
 
+## Step 0: Check for a Playbook
+
+Playbooks capture hard-won knowledge about navigating an app — non-obvious routes,
+tricky UI patterns, localStorage tricks, multi-step flows — so future sessions can skip
+rediscovery. Before doing anything else, check whether one applies to this task.
+
+### 1. Identify the current repo
+
+```bash
+gh repo view --json nameWithOwner -q .nameWithOwner
+# → "acmecorp/my-app"
+```
+
+### 2. Read the index
+
+```bash
+cat ~/.agent/memory/agent-browser-playbooks/index.json
+```
+
+The index maps playbook keys to metadata:
+
+```json
+{
+  "my-app": {
+    "playbook": "~/.agent/memory/agent-browser-playbooks/my-app.md",
+    "description": "Main marketing site and admin dashboard",
+    "repos": ["acmecorp/my-app", "acmecorp/my-app-staging"],
+    "when_to_use": "Any task involving the admin panel, onboarding flow, or settings pages — these have non-obvious navigation the playbook documents.",
+    "last_updated": "2026-04-20"
+  }
+}
+```
+
+If the index file doesn't exist yet, skip ahead — no playbooks have been saved.
+
+### 3. Decide whether to load a playbook
+
+Find entries where the current `org/repo` appears in `repos`. For each match, read
+`when_to_use` and decide: does it apply to what the user is asking you to do right now?
+
+- If yes → read the full playbook file before proceeding. Keep its contents in mind
+  throughout the session — it may save you several steps.
+- If no match or `when_to_use` doesn't apply → proceed without a playbook.
+
+---
+
 ## Step 1: Ensure the Dev Server Is Running
 
 Before opening any localhost URL, verify the dev server is running **from the current
@@ -292,6 +338,99 @@ agent-browser eval --stdin <<'EVALEOF'
 JSON.stringify(window.__REDUX_STATE__ || {})
 EVALEOF
 ```
+
+---
+
+## Step 4: Decide Whether to Update the Playbook
+
+After completing the browser session, before closing, review what you did and ask:
+**would any of this have been faster if a playbook entry had existed?**
+
+### Things worth saving
+
+- A URL you had to discover by clicking through navigation (could have gone direct)
+- A modal, drawer, or panel that required a non-obvious sequence to open
+- A UI element that looked or behaved differently than expected (wrong label, hidden state, timing issue)
+- A `localStorage` key or flag you set manually to enable something
+- A multi-step flow where choosing the wrong option at any step would cost significant backtracking
+- A gotcha you hit — even if you recovered quickly, future sessions won't have the context you have now
+
+### Things not worth saving
+
+- Navigating to the root URL or any URL that's obvious from the project name
+- Standard CRUD interactions on clearly-labeled forms
+- Anything already documented in the existing playbook
+
+### If something is worth saving
+
+Tell the user concisely what you'd save and why it would help:
+
+> "I had to click through 4 menus to find the webhook configuration page — the URL is `/settings/integrations/webhooks` and it's not in the main nav. Worth adding to the playbook so next time I can go direct. Add it?"
+
+One question, one yes/no. If yes, write or update the playbook and index (see the section below). If no, move on.
+
+If nothing new was discovered, skip this step silently — don't ask the user about the playbook if there's nothing useful to save.
+
+---
+
+## Saving Knowledge to a Playbook
+
+Playbooks live at `~/.agent/memory/agent-browser-playbooks/<key>.md`, registered in
+`~/.agent/memory/agent-browser-playbooks/index.json`.
+
+### When to write or update a playbook
+
+**Proactively offer** to save knowledge when you:
+- Navigated a multi-step flow to reach a page (more than 2 clicks from home)
+- Worked around a tricky UI element (custom dropdowns, multi-pane layouts, lazy-loaded modals)
+- Injected localStorage or cookies manually to enable a feature or bypass a gate
+- Discovered a non-obvious URL that skips the normal navigation path
+- Hit a gotcha that would cost time to rediscover (timing issue, required scroll, hidden button)
+
+**Always save** when the user explicitly asks to "save this", "remember this", "add this
+to the playbook", or similar.
+
+### Creating a new playbook
+
+1. Copy the template into the playbooks directory:
+
+```bash
+mkdir -p ~/.agent/memory/agent-browser-playbooks
+cp ~/.agents/skills/agent-browser/references/playbook-template.md \
+   ~/.agent/memory/agent-browser-playbooks/<key>.md
+```
+
+2. Fill in the playbook sections with what you discovered.
+
+3. Add an entry to `index.json` (create the file if it doesn't exist yet):
+
+```json
+{
+  "<key>": {
+    "playbook": "~/.agent/memory/agent-browser-playbooks/<key>.md",
+    "description": "One sentence on what app/product this covers",
+    "repos": ["org/repo"],
+    "when_to_use": "Plain-English description of which tasks benefit from this playbook. Be specific — e.g. 'navigating to the billing or team settings pages, which require 3+ clicks and are easy to miss'.",
+    "last_updated": "YYYY-MM-DD"
+  }
+}
+```
+
+Get the `org/repo` value from `gh repo view --json nameWithOwner -q .nameWithOwner`.
+Add additional repos to the array if the same app is served from multiple repos (e.g. a
+staging fork).
+
+### Updating an existing playbook
+
+Read the file first, then add or revise sections. Don't delete existing entries unless
+they're confirmed stale — old knowledge is usually still useful.
+
+After editing, update `last_updated` in the playbook file **and** in `index.json`.
+If the scope of what the playbook covers has changed meaningfully, update `when_to_use`
+in the index too — that's what future sessions will read to decide whether to load it.
+
+When you finish a session having discovered something worth saving, tell the user:
+> "I found a non-obvious step for [X]. Want me to save that to the playbook so future sessions can skip it?"
 
 ---
 
