@@ -34,6 +34,7 @@ This is a dotfiles/configuration repository managed with [GNU Stow](https://www.
 - **Always check this repo first** before looking elsewhere for config files. If the user asks about a tool's config (AeroSpace, Ghostty, Neovim, Zsh, OpenCode, etc.), look in `.config/<tool>/` here first.
 - Config files are stowed, so `.config/aerospace/aerospace/aerospace.toml` here maps to `~/.config/aerospace/aerospace.toml`.
 - Do not create new top-level config directories without also updating `scripts/install.sh` to stow them.
+- If stow hits unmanaged-file conflicts during install/pull, `scripts/dotfiles.sh` now auto-backs up the conflicting targets to `~/.local/state/computer/stow-conflicts/<timestamp>/` before retrying.
 - **Keep this file up to date.** When new tools, configs, skills, or conventions are added to this repo, update AGENTS.md to reflect them.
 
 
@@ -98,4 +99,3 @@ Each file is a named JSON blob written by tools/extensions and read by agent ski
 ### Adding new memory files
 
 Skills that need cross-session persistence should read/write named JSON files in `~/.agent/memory/`. Document the file in the table above when adding one.
-

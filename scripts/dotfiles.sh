@@ -32,6 +32,63 @@ dotfiles_install_oh_my_zsh() {
   fi
 }
 
+dotfiles_stow_package() {
+  local stow_dir="$1"
+  local target="$2"
+  local pkg="$3"
+  local output
+
+  if output="$(stow --dir="${stow_dir}" --target="${target}" --restow "${pkg}" 2>&1)"; then
+    return 0
+  fi
+
+  warn "Initial stow failed for ${pkg}:"
+  while IFS= read -r line; do
+    warn "  ${line}"
+  done <<< "${output}"
+
+  local -a conflicts
+  local line
+  while IFS= read -r line; do
+    if [[ "${line}" =~ existing\ target\ ([^[:space:]]+)\ since\ neither\ a\ link\ nor\ a\ directory ]]; then
+      conflicts+=("${BASH_REMATCH[1]}")
+    fi
+  done <<< "${output}"
+
+  if [[ "${#conflicts[@]}" -eq 0 ]]; then
+    return 1
+  fi
+
+  local backup_root
+  backup_root="${HOME}/.local/state/computer/stow-conflicts/$(date +%Y%m%d-%H%M%S)"
+  mkdir -p "${backup_root}"
+
+  local moved=0
+  local rel_target
+  local abs_target
+  local backup_target
+  for rel_target in "${conflicts[@]}"; do
+    rel_target="${rel_target#./}"
+    abs_target="${target}/${rel_target}"
+    if [[ ! -e "${abs_target}" && ! -L "${abs_target}" ]]; then
+      continue
+    fi
+
+    backup_target="${backup_root}/${rel_target}"
+    mkdir -p "$(dirname "${backup_target}")"
+    mv "${abs_target}" "${backup_target}"
+    log "  Backed up unmanaged ${abs_target} -> ${backup_target}"
+    moved=1
+  done
+
+  if [[ "${moved}" -eq 0 ]]; then
+    return 1
+  fi
+
+  warn "Retrying stow for ${pkg} after backing up conflicts."
+  stow --dir="${stow_dir}" --target="${target}" --restow "${pkg}"
+}
+
 dotfiles_stow() {
   if ! command -v stow >/dev/null 2>&1; then
     err "stow not found."
@@ -56,7 +113,7 @@ dotfiles_stow() {
   for pkg in "${config_packages[@]}"; do
     if [[ -d "${DOTFILES_REPO_ROOT}/.config/${pkg}" ]]; then
       log "  ~/.config/${pkg}"
-      if ! stow --dir="${DOTFILES_REPO_ROOT}/.config" --target="${HOME}/.config" --restow "${pkg}"; then
+      if ! dotfiles_stow_package "${DOTFILES_REPO_ROOT}/.config" "${HOME}/.config" "${pkg}"; then
         warn "Failed to stow ${pkg}"
         stow_failed=1
       fi
@@ -66,7 +123,7 @@ dotfiles_stow() {
   # Stow .gitconfig into $HOME
   if [[ -d "${DOTFILES_REPO_ROOT}/.config/git-root" ]]; then
     log "  ~/.gitconfig-computer"
-    if ! stow --dir="${DOTFILES_REPO_ROOT}/.config" --target="${HOME}" --restow git-root; then
+    if ! dotfiles_stow_package "${DOTFILES_REPO_ROOT}/.config" "${HOME}" "git-root"; then
       warn "Failed to stow git-root"
       stow_failed=1
     fi
@@ -75,7 +132,7 @@ dotfiles_stow() {
   # Stow .zshrc into $HOME
   if [[ -d "${DOTFILES_REPO_ROOT}/.config/zsh-root" ]]; then
     log "  ~/.zshrc"
-    if ! stow --dir="${DOTFILES_REPO_ROOT}/.config" --target="${HOME}" --restow zsh-root; then
+    if ! dotfiles_stow_package "${DOTFILES_REPO_ROOT}/.config" "${HOME}" "zsh-root"; then
       warn "Failed to stow zsh-root"
       stow_failed=1
     fi
@@ -84,7 +141,7 @@ dotfiles_stow() {
   # Stow ~/.agents into $HOME
   if [[ -d "${DOTFILES_REPO_ROOT}/.config/agents-root" ]]; then
     log "  ~/.agents"
-    if ! stow --dir="${DOTFILES_REPO_ROOT}/.config" --target="${HOME}" --restow agents-root; then
+    if ! dotfiles_stow_package "${DOTFILES_REPO_ROOT}/.config" "${HOME}" "agents-root"; then
       warn "Failed to stow agents-root"
       stow_failed=1
     fi
@@ -93,7 +150,7 @@ dotfiles_stow() {
   # Stow ~/.factory/settings.json into $HOME
   if [[ -d "${DOTFILES_REPO_ROOT}/.config/factory-root" ]]; then
     log "  ~/.factory/settings.json"
-    if ! stow --dir="${DOTFILES_REPO_ROOT}/.config" --target="${HOME}" --restow factory-root; then
+    if ! dotfiles_stow_package "${DOTFILES_REPO_ROOT}/.config" "${HOME}" "factory-root"; then
       warn "Failed to stow factory-root"
       stow_failed=1
     fi
@@ -105,4 +162,3 @@ dotfiles_stow() {
 if [[ "${BASH_SOURCE[0]}" == "${0}" ]]; then
   err "This script is meant to be sourced, not executed directly."
 fi
-
