@@ -9,6 +9,8 @@
 # After install, use globally
 computer init      # full setup (init + install)
 computer install   # just packages + stow
+computer stow      # stow configs only (auto-select by OS)
+computer linux-stow # stow configs only (Linux)
 ```
 
 ## Structure
@@ -19,7 +21,9 @@ computer install   # just packages + stow
 │   └── computer         # CLI command
 ├── scripts/
 │   ├── init.sh          # installs Xcode CLI tools, Rosetta, Homebrew
-│   └── install.sh       # runs brew bundle + stow
+│   ├── install.sh       # runs brew bundle + stow
+│   ├── stow.sh          # stows dotfiles only
+│   └── linux-stow.sh    # stows dotfiles only (Linux)
 ├── packages             # Brewfile
 └── .config/
     ├── aerospace/       # → ~/.config/aerospace/
@@ -35,6 +39,8 @@ computer install   # just packages + stow
 ```bash
 computer init      # install Homebrew, then run install
 computer install   # install packages, stow configs, apply macOS settings
+computer stow      # stow configs only (macOS uses stow.sh, Linux uses linux-stow.sh)
+computer linux-stow # stow configs only (Linux; skips oh-my-zsh install)
 computer upgrade   # upgrade all Homebrew packages
 computer pull      # git pull, then run install
 computer os        # apply macOS settings & login items

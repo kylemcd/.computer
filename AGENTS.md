@@ -6,10 +6,12 @@ This is a dotfiles/configuration repository managed with [GNU Stow](https://www.
 
 ```
 .computer/
-├── bin/computer          # CLI: init, install, upgrade, pull, os, help
+├── bin/computer          # CLI: init, install, stow, linux-stow, upgrade, pull, os, help
 ├── scripts/
 │   ├── init.sh           # Xcode CLI tools, Rosetta, Homebrew
-│   └── install.sh        # brew bundle + stow
+│   ├── install.sh        # brew bundle + stow + package extras
+│   ├── stow.sh           # stow dotfiles only (no package install)
+│   └── linux-stow.sh     # Linux-focused stow (skips oh-my-zsh bootstrap)
 ├── packages              # Brewfile
 ├── bun-packages          # bun global packages (one per line)
 ├── gh-extensions         # gh extensions (one per line)

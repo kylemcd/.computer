@@ -12,6 +12,8 @@ Usage: computer <command>
 Commands:
   init      Install Homebrew and dependencies
   install   Install packages and stow configs
+  stow      Stow configs only (auto-select by OS)
+  linux-stow Stow configs only for Linux environments
   upgrade   Upgrade all Homebrew packages
   pull      Pull down and install latest from GitHub
   os        Apply macOS settings and login items
@@ -25,6 +27,16 @@ case "${1:-}" in
     ;;
   install)
     exec "${SCRIPTS_DIR}/install.sh"
+    ;;
+  stow)
+    if [[ "$(uname)" == "Darwin" ]]; then
+      exec "${SCRIPTS_DIR}/stow.sh"
+    else
+      exec "${SCRIPTS_DIR}/linux-stow.sh"
+    fi
+    ;;
+  linux-stow)
+    exec "${SCRIPTS_DIR}/linux-stow.sh"
     ;;
   upgrade)
     exec "${SCRIPTS_DIR}/upgrade.sh"
