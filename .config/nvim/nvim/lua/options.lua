@@ -1,6 +1,9 @@
 -- Basic nvim settings
 vim.g.mapleader = " "
 
+-- Font (applies in GUI clients like Neovide)
+vim.opt.guifont = "Berkeley Mono:h13"
+
 -- UI
 vim.opt.nu = true
 vim.opt.relativenumber = true
