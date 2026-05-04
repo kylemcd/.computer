@@ -64,9 +64,9 @@ default-root-container-orientation = 'horizontal'
     alt-m = 'workspace m' # Messages
     alt-f = 'workspace f' # Finder
     alt-w = 'workspace w' # Calendar (w = when)
-    alt-r = 'workspace r' # Reminders 
-    alt-j = 'workspace j' # Manet (j = jams)  
-    alt-o = 'workspace o' # Obsidian  
+    alt-r = 'workspace r' # Reminders
+    alt-j = 'workspace j' # Manet (j = jams)
+    alt-o = 'workspace o' # Obsidian
 
     # Move active window to workspace
     alt-shift-c = 'move-node-to-workspace c'
@@ -150,6 +150,10 @@ run = 'move-node-to-workspace r'
 
 [[on-window-detected]]
 if.app-id = 'dev.tilo.Manet' # Manet
+run = 'move-node-to-workspace j'
+
+[[on-window-detected]]
+if.app-id = 'app.discrete.apple-platforms' # Discrete
 run = 'move-node-to-workspace j'
 
 [[on-window-detected]]
