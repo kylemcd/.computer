@@ -139,3 +139,17 @@ wtclean() {
     wt remove $force_flag "$branch"
   done
 }
+
+# skillset — after installing/removing shared work skills, refresh the git
+# excludes so their symlinks stay out of this public repo.
+# See ~/.computer/scripts/ignore-skillset-skills.sh
+skillset() {
+  command skillset "$@"
+  local ret=$?
+  case "${1:-}" in
+    install|uninstall)
+      "$HOME/.computer/scripts/ignore-skillset-skills.sh" >/dev/null 2>&1 || true
+      ;;
+  esac
+  return $ret
+}
