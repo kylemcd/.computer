@@ -159,3 +159,7 @@ run = 'move-node-to-workspace j'
 [[on-window-detected]]
 if.app-id = 'md.obsidian' # Obsidian
 run = 'move-node-to-workspace o'
+
+[[on-window-detected]]
+if.app-id = 'com.google.chrome.for.testing' # Google Chrome for Testing (vitest browser)
+run = 'exec-and-forget /Users/kyle/.config/aerospace/route-chrome-for-testing.sh'
