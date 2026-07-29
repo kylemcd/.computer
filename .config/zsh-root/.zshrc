@@ -81,8 +81,12 @@ zstyle ':completion:*' list-colors "ma=0;38;2;226;226;230:di=0;38;2;124;212;190:
 # ------------------------------------------------------------------------------
 # asdf version manager
 # ------------------------------------------------------------------------------
+# asdf >=0.16 is a Go binary with no asdf.sh; the shims dir goes on PATH
+# directly. The source line remains as a fallback for older installs.
 if [[ -f $(brew --prefix asdf)/libexec/asdf.sh ]]; then
   source $(brew --prefix asdf)/libexec/asdf.sh
+else
+  export PATH="${ASDF_DATA_DIR:-$HOME/.asdf}/shims:$PATH"
 fi
 
 # asdf-erlang build settings (link against Homebrew OpenSSL)
