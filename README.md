@@ -44,6 +44,7 @@ computer linux-stow # stow configs only (Linux; skips oh-my-zsh install)
 computer upgrade   # upgrade all Homebrew packages
 computer pull      # git pull, then run install
 computer os        # apply macOS settings & login items
+computer mutagen   # set up / ensure the workbench <-> ~/projects file sync
 computer help      # show help
 ```
 

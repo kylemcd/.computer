@@ -17,6 +17,7 @@ Commands:
   upgrade   Upgrade all Homebrew packages
   pull      Pull down and install latest from GitHub
   os        Apply macOS settings and login items
+  mutagen   Set up / ensure the workbench <-> ~/projects file sync
   help      Show this help message
 EOF
 }
@@ -46,6 +47,9 @@ case "${1:-}" in
     ;;
   os)
     exec "${SCRIPTS_DIR}/os.sh"
+    ;;
+  mutagen)
+    exec "${SCRIPTS_DIR}/mutagen-sync.sh"
     ;;
   help|--help|-h|"")
     usage
