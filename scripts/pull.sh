@@ -24,7 +24,13 @@ cd "${REPO_ROOT}" && git pull
 # dirs that were never registered as real submodules, and `git submodule
 # update --init --recursive` with no path errors out on those.
 if [[ -f "${REPO_ROOT}/.gitmodules" ]]; then
-  mapfile -t submodule_paths < <(git config --file "${REPO_ROOT}/.gitmodules" --get-regexp '\.path$' | awk '{print $2}')
+  # Avoid `mapfile` (bash 4+) — macOS ships bash 3.2 as /bin/bash, and
+  # `env bash` isn't guaranteed to resolve to a newer Homebrew bash yet
+  # this early in setup.
+  submodule_paths=()
+  while IFS= read -r path; do
+    [[ -n "$path" ]] && submodule_paths+=("$path")
+  done < <(git config --file "${REPO_ROOT}/.gitmodules" --get-regexp '\.path$' | awk '{print $2}')
   if [[ ${#submodule_paths[@]} -gt 0 ]]; then
     log "Updating submodules: ${submodule_paths[*]}"
     git -C "${REPO_ROOT}" submodule update --init --recursive -- "${submodule_paths[@]}"
