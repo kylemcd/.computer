@@ -16,6 +16,21 @@ fi
 log "Pulling latest from git..."
 cd "${REPO_ROOT}" && git pull
 
+# `git pull` only moves the gitlink pointer; it never populates a submodule's
+# working directory (on a fresh clone) or fast-forwards it (after a pull that
+# bumps the pointer). Do that explicitly, scoped to paths declared in
+# .gitmodules only — this repo also has a couple of stray gitlinks
+# (.config/tmux/tmux/plugins/{tpm,tmux-floax}) left over from nested .git
+# dirs that were never registered as real submodules, and `git submodule
+# update --init --recursive` with no path errors out on those.
+if [[ -f "${REPO_ROOT}/.gitmodules" ]]; then
+  mapfile -t submodule_paths < <(git config --file "${REPO_ROOT}/.gitmodules" --get-regexp '\.path$' | awk '{print $2}')
+  if [[ ${#submodule_paths[@]} -gt 0 ]]; then
+    log "Updating submodules: ${submodule_paths[*]}"
+    git -C "${REPO_ROOT}" submodule update --init --recursive -- "${submodule_paths[@]}"
+  fi
+fi
+
 log "Running install (packages + stow + OS settings)..."
 "${REPO_ROOT}/scripts/install.sh"
 
