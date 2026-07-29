@@ -59,9 +59,19 @@ it, instead of living only inside this dotfiles repo.
 
 - **Cloning fresh?** Run `git submodule update --init` (or clone with
   `--recurse-submodules`) to populate it.
-- **Editing a skill?** Commit and push from inside
-  `.config/agents-root/.agents/skills/` itself (it's its own repo), then
-  commit the resulting gitlink bump here in `.computer`.
+- **Tracks `main`.** The submodule is configured with `branch = main` in
+  `.gitmodules`, and `computer pull` runs `git submodule update --remote`
+  (see `scripts/pull.sh`) — so it always checks out the latest commit on
+  `kylemcd/skills` main, not the exact SHA pinned in this repo's tree.
+- **Editing a skill?** Just commit and push from inside
+  `.config/agents-root/.agents/skills/` itself (it's its own repo). No need
+  to also bump the gitlink here — the next `computer pull` (on any machine)
+  picks it up automatically. This means `git status` here may show the
+  submodule as "modified" after a pull that picked up new commits; that's
+  expected and safe to leave uncommitted. If you do want to lock in a
+  specific skills version in this repo's history (e.g. for reproducibility),
+  `git add .config/agents-root/.agents/skills && git commit` records the
+  currently-checked-out commit as the pointer.
 - **skillset symlinks** (`skillset install <name>`, used for shared Knock
   work skills) land inside this submodule directory too. They're excluded via
   the submodule's own `.git/info/exclude` — see

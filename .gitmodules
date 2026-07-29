@@ -1,3 +1,4 @@
 [submodule ".config/agents-root/.agents/skills"]
 	path = .config/agents-root/.agents/skills
 	url = git@github.com:kylemcd/skills.git
+	branch = main

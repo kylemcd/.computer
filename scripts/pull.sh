@@ -23,6 +23,11 @@ cd "${REPO_ROOT}" && git pull
 # (.config/tmux/tmux/plugins/{tpm,tmux-floax}) left over from nested .git
 # dirs that were never registered as real submodules, and `git submodule
 # update --init --recursive` with no path errors out on those.
+#
+# --remote checks out the latest commit on each submodule's tracked branch
+# (see `branch =` in .gitmodules) rather than the exact SHA pinned in this
+# repo's tree, so skill edits pushed to kylemcd/skills show up here on the
+# next pull without needing a separate pointer-bump commit in this repo.
 if [[ -f "${REPO_ROOT}/.gitmodules" ]]; then
   # Avoid `mapfile` (bash 4+) — macOS ships bash 3.2 as /bin/bash, and
   # `env bash` isn't guaranteed to resolve to a newer Homebrew bash yet
@@ -33,7 +38,7 @@ if [[ -f "${REPO_ROOT}/.gitmodules" ]]; then
   done < <(git config --file "${REPO_ROOT}/.gitmodules" --get-regexp '\.path$' | awk '{print $2}')
   if [[ ${#submodule_paths[@]} -gt 0 ]]; then
     log "Updating submodules: ${submodule_paths[*]}"
-    git -C "${REPO_ROOT}" submodule update --init --recursive -- "${submodule_paths[@]}"
+    git -C "${REPO_ROOT}" submodule update --init --recursive --remote -- "${submodule_paths[@]}"
   fi
 fi
 
