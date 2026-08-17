@@ -105,7 +105,7 @@ if.app-id = 'com.linear' # Linear
 run = 'move-node-to-workspace l'
 
 [[on-window-detected]]
-if.app-id = 'org.mozilla.firefox' # Firefox
+if.app-id = 'app.zen-browser.zen' # Zen Browser
 run = 'move-node-to-workspace b'
 
 [[on-window-detected]]
