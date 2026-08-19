@@ -89,6 +89,106 @@ dotfiles_stow_package() {
   stow --dir="${stow_dir}" --target="${target}" --restow "${pkg}"
 }
 
+dotfiles_link_skill_compat() {
+  local skills_dir="${DOTFILES_REPO_ROOT}/home/.config/agents/skills"
+  [[ -d "${skills_dir}" ]] || return 0
+
+  # Claude Code reads skills from ~/.claude/skills as one symlinked directory.
+  if [[ -d "${HOME}/.claude" ]]; then
+    ln -sfn "${skills_dir}" "${HOME}/.claude/skills"
+    log "  ~/.claude/skills -> home/.config/agents/skills"
+  fi
+
+  # A few skills in the kylemcd/skills submodule itself (worktree,
+  # fix-pr-comments, auto-build) hardcode ~/.agents/skills/... as an
+  # absolute path in their own scripts. That's a separate repo, so this
+  # symlink is what keeps those paths working without patching it.
+  ln -sfn ".config/agents" "${HOME}/.agents"
+  log "  ~/.agents -> .config/agents"
+
+  # Codex bundles its own skills under ~/.codex/skills/.system/ (untouched,
+  # not ours) and expects user skills as direct siblings,
+  # ~/.codex/skills/<name>/ — confirmed by reading its own skill-installer
+  # script. There's no single directory to symlink the way ~/.claude/skills
+  # works, so link one per skill instead, and keep it in sync: add a link
+  # for every skill currently in the submodule, and remove any link we
+  # previously made here for a skill that's since been renamed or removed
+  # (only ever touches links that point back into skills_dir — .system/ and
+  # anything else under ~/.codex/skills/ is never touched).
+  if [[ -d "${HOME}/.codex" ]]; then
+    mkdir -p "${HOME}/.codex/skills"
+
+    local target name
+    for target in "${skills_dir}"/*/; do
+      [[ -d "${target}" ]] || continue
+      name="$(basename "${target}")"
+      ln -sfn "${target%/}" "${HOME}/.codex/skills/${name}"
+    done
+
+    local link
+    for link in "${HOME}/.codex/skills"/*; do
+      [[ -L "${link}" ]] || continue
+      case "$(readlink "${link}")" in
+        "${skills_dir}"/*)
+          [[ -d "${link}" ]] || rm -f "${link}"
+          ;;
+      esac
+    done
+    log "  ~/.codex/skills/<name> (one symlink per skill)"
+  fi
+}
+
+# Registers a per-user launchd agent that reruns dotfiles_link_skill_compat
+# automatically whenever home/.config/agents/skills/ changes — so a skill
+# added/removed/renamed shows up in ~/.codex/skills/ without waiting for the
+# next `computer stow`/`install`/`pull`. (Claude/.agents need no watcher:
+# those are whole-directory symlinks, already live the instant a file exists
+# on disk.) macOS only; a no-op on Linux or if Codex isn't installed.
+dotfiles_install_skill_watcher() {
+  [[ "$(uname)" == "Darwin" ]] || return 0
+  [[ -d "${HOME}/.codex" ]] || return 0
+  command -v launchctl >/dev/null 2>&1 || return 0
+
+  local label="dev.kylemcd.computer.skill-sync"
+  local plist="${HOME}/Library/LaunchAgents/${label}.plist"
+  local state_dir="${HOME}/.local/state/computer"
+  mkdir -p "${HOME}/Library/LaunchAgents" "${state_dir}"
+
+  cat > "${plist}" <<PLIST
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+  <key>Label</key>
+  <string>${label}</string>
+  <key>ProgramArguments</key>
+  <array>
+    <string>/bin/bash</string>
+    <string>-c</string>
+    <string>source '${DOTFILES_REPO_ROOT}/scripts/dotfiles.sh' &amp;&amp; dotfiles_link_skill_compat</string>
+  </array>
+  <key>WatchPaths</key>
+  <array>
+    <string>${DOTFILES_REPO_ROOT}/home/.config/agents/skills</string>
+  </array>
+  <key>RunAtLoad</key>
+  <true/>
+  <key>StandardOutPath</key>
+  <string>${state_dir}/skill-sync.log</string>
+  <key>StandardErrorPath</key>
+  <string>${state_dir}/skill-sync.log</string>
+</dict>
+</plist>
+PLIST
+
+  launchctl unload "${plist}" >/dev/null 2>&1 || true
+  if launchctl load -w "${plist}" >/dev/null 2>&1; then
+    log "  ~/.codex/skills/<name> now auto-syncs on change (launchd: ${label})"
+  else
+    warn "Failed to load launchd watcher ${label} — ~/.codex/skills/<name> will still sync on the next computer stow/install/pull"
+  fi
+}
+
 dotfiles_stow() {
   if ! command -v stow >/dev/null 2>&1; then
     err "stow not found."
@@ -142,6 +242,10 @@ dotfiles_stow() {
       fi
     fi
   done
+
+  log "Linking agent skills into other tools..."
+  dotfiles_link_skill_compat
+  dotfiles_install_skill_watcher
 
   return "${stow_failed}"
 }
