@@ -95,66 +95,53 @@ dotfiles_stow() {
   fi
 
   log "Stowing configs..."
+  # ~/.config must be a real directory *before* stowing, or stow will
+  # tree-fold the whole thing into a single symlink into this repo the first
+  # time it doesn't exist yet (fresh machine) — instead of descending in and
+  # symlinking just the individual tools we manage.
   mkdir -p "${HOME}/.config"
 
   local stow_failed=0
 
+  # Each package is named exactly for where it lands under $HOME, and is
+  # stowed with --target set to THAT directory itself (${HOME}/${pkg}), not
+  # just $HOME. Stow never uses the package name when computing target
+  # paths, only --target plus the package's own internal relative paths — so
+  # targeting plain $HOME here would (and did, before this was fixed)
+  # scatter aerospace/tmux/etc. as loose entries directly into $HOME instead
+  # of into $HOME/.config. Targeting $HOME/${pkg} directly is what lets each
+  # package's contents skip any redundant per-tool wrapper folder:
+  #   home/.config/tmux/tmux.conf → ~/.config/tmux/tmux.conf   (not
+  #   home/.config/tmux/tmux/tmux.conf, which is what a package targeting
+  #   plain $HOME would have needed instead).
+  #   home/.config/  → ~/.config/  (aerospace, agents, ghostty, git, nvim,
+  #                                 tmux, zsh all live inside it — stow
+  #                                 descends into the real ~/.config and
+  #                                 symlinks each tool individually, no
+  #                                 per-tool package needed)
+  # A tool whose config can't live under ~/.config/ (hardcoded by the app
+  # itself, e.g. ~/.factory/) would need its own sibling package here,
+  # named for its own real target dir the same way.
   # Space-delimited override, e.g.:
-  #   DOTFILES_CONFIG_PACKAGES="nvim zsh"
-  local -a config_packages
-  if [[ -n "${DOTFILES_CONFIG_PACKAGES:-}" ]]; then
+  #   DOTFILES_PACKAGES=".config"
+  local -a packages
+  if [[ -n "${DOTFILES_PACKAGES:-}" ]]; then
     # shellcheck disable=SC2206
-    config_packages=(${DOTFILES_CONFIG_PACKAGES})
+    packages=(${DOTFILES_PACKAGES})
   else
-    config_packages=(aerospace ghostty gh-dash nvim opencode tmux tuicr zsh)
+    packages=(.config)
   fi
 
   local pkg
-  for pkg in "${config_packages[@]}"; do
-    if [[ -d "${DOTFILES_REPO_ROOT}/.config/${pkg}" ]]; then
-      log "  ~/.config/${pkg}"
-      if ! dotfiles_stow_package "${DOTFILES_REPO_ROOT}/.config" "${HOME}/.config" "${pkg}"; then
+  for pkg in "${packages[@]}"; do
+    if [[ -d "${DOTFILES_REPO_ROOT}/home/${pkg}" ]]; then
+      log "  ${pkg}"
+      if ! dotfiles_stow_package "${DOTFILES_REPO_ROOT}/home" "${HOME}/${pkg}" "${pkg}"; then
         warn "Failed to stow ${pkg}"
         stow_failed=1
       fi
     fi
   done
-
-  # Stow .gitconfig into $HOME
-  if [[ -d "${DOTFILES_REPO_ROOT}/.config/git-root" ]]; then
-    log "  ~/.gitconfig-computer"
-    if ! dotfiles_stow_package "${DOTFILES_REPO_ROOT}/.config" "${HOME}" "git-root"; then
-      warn "Failed to stow git-root"
-      stow_failed=1
-    fi
-  fi
-
-  # Stow .zshrc into $HOME
-  if [[ -d "${DOTFILES_REPO_ROOT}/.config/zsh-root" ]]; then
-    log "  ~/.zshrc"
-    if ! dotfiles_stow_package "${DOTFILES_REPO_ROOT}/.config" "${HOME}" "zsh-root"; then
-      warn "Failed to stow zsh-root"
-      stow_failed=1
-    fi
-  fi
-
-  # Stow ~/.agents into $HOME
-  if [[ -d "${DOTFILES_REPO_ROOT}/.config/agents-root" ]]; then
-    log "  ~/.agents"
-    if ! dotfiles_stow_package "${DOTFILES_REPO_ROOT}/.config" "${HOME}" "agents-root"; then
-      warn "Failed to stow agents-root"
-      stow_failed=1
-    fi
-  fi
-
-  # Stow ~/.factory/settings.json into $HOME
-  if [[ -d "${DOTFILES_REPO_ROOT}/.config/factory-root" ]]; then
-    log "  ~/.factory/settings.json"
-    if ! dotfiles_stow_package "${DOTFILES_REPO_ROOT}/.config" "${HOME}" "factory-root"; then
-      warn "Failed to stow factory-root"
-      stow_failed=1
-    fi
-  fi
 
   return "${stow_failed}"
 }

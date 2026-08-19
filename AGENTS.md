@@ -1,6 +1,10 @@
 # .computer — Agent Instructions
 
-This is a dotfiles/configuration repository managed with [GNU Stow](https://www.gnu.org/software/stow/). Configs live under `.config/` and are symlinked to `~/.config/` via stow.
+This is a dotfiles/configuration repository managed with [GNU Stow](https://www.gnu.org/software/stow/). There is exactly one stow package, `home/.config/`, stowed with `--target=~/.config` (**not** `$HOME`) — so its own contents map onto `~/.config/` one-to-one, with no per-tool wrapper folder and no name repeated twice in the path.
+
+**Why `--target` is `~/.config`, not `$HOME`:** stow never uses the package name when computing target paths, only `--target` plus the package's own internal relative paths. So `home/.config/tmux/tmux.conf`, stowed with `--target=~/.config`, lands at `~/.config/tmux/tmux.conf` — correct, and "tmux" appears once. Stowing the same tree with `--target=$HOME` instead would need an extra `.config/tmux/` wrapper *inside* the package just to reach the same place (`home/.config/tmux/.config/tmux/tmux.conf` → `~/.config/tmux/tmux.conf`) — that redundant doubled nesting is exactly what this structure avoids. See `dotfiles_stow()` in `scripts/dotfiles.sh` for the working implementation.
+
+**Default to `~/.config/<tool>/` over a home-root dotfile whenever the tool actually supports it** (git via `include.path`, zsh via `ZDOTDIR` — see below). A tool that hardcodes its own location and can't be redirected (e.g. Factory's `~/.factory/`) needs its own sibling package next to `home/.config/`, targeting that real directory the same way — `.config` isn't managing anything like that right now, but that's the pattern if one comes up.
 
 ## Repo Structure
 
@@ -17,20 +21,36 @@ This is a dotfiles/configuration repository managed with [GNU Stow](https://www.
 ├── bun-packages          # bun global packages (one per line)
 ├── gh-extensions         # gh extensions (one per line)
 ├── curl-packages         # curl | bash installers (one URL per line)
-└── .config/
-    ├── aerospace/        # → ~/.config/aerospace/
-    ├── agents-root/      # → ~/  (contains .agents/skills/ [git submodule] and agent-team-draft/)
-    ├── gh-dash/          # → ~/.config/gh-dash/
-    ├── ghostty/          # → ~/.config/ghostty/
-    ├── git-root/         # → ~/  (contains .gitconfig etc.)
-    ├── nvim/             # → ~/.config/nvim/
-    ├── opencode/         # → ~/.config/opencode/
-    ├── tmux/             # → ~/.config/tmux/
-    ├── tuicr/            # → ~/.config/tuicr/
-    ├── zsh/              # → ~/.config/zsh/
-    ├── zsh-root/         # → ~/  (contains .zshrc)
-    └── factory-root/     # → ~/  (contains .factory/settings.json)
+└── home/
+    └── .config/          # stowed with --target=~/.config — mirrors it directly
+        ├── aerospace/    # → ~/.config/aerospace/
+        ├── agents/       # → ~/.config/agents/  (skills/ is a git submodule)
+        ├── ghostty/      # → ~/.config/ghostty/
+        ├── git/          # → ~/.config/git/  (gitconfig-computer only — ~/.config/git/ is a real, pre-existing dir with other unrelated content)
+        ├── nvim/         # → ~/.config/nvim/
+        ├── tmux/         # → ~/.config/tmux/  (plugins/{tpm,tmux-floax} are gitlinks, not real submodules)
+        └── zsh/          # → ~/.config/zsh/  (.zshrc lives here too, via ZDOTDIR — see below)
 ```
+
+opencode, gh-dash, tuicr, and Factory (`~/.factory/settings.json`) used to be managed here
+too — removed by request. The apps/CLIs themselves are untouched (still installed, still
+work); only this repo's management of their config was dropped. `packages` (Brewfile) still
+has `tuicr` and `opencode` taps, and `gh-extensions` still lists `dlvhdr/gh-dash` — those
+were intentionally left alone since removing *config management* is a different question
+from removing *installation*; ask before touching those if it comes up.
+
+Two things need something *outside* this repo to actually take effect, because the tool has to be told to look in `~/.config/` in the first place:
+
+- **git** — `~/.gitconfig` (the user's real, unmanaged main gitconfig — never lives in this repo) has `[include] path = ~/.config/git/gitconfig-computer`, set via `git config --global include.path '~/.config/git/gitconfig-computer'` in `scripts/install.sh`. Without that include line, `home/.config/git/gitconfig-computer` is inert — git doesn't look for it on its own the way it does `~/.gitconfig`.
+- **zsh** — `~/.zshenv` (unmanaged, lives outside this repo — see below) sets `export ZDOTDIR="$HOME/.config/zsh"`. zsh always reads `~/.zshenv` from the fixed default location first, *then* looks for `.zshrc`/`.zshenv`-siblings under `$ZDOTDIR`; that's the only way to make zsh read `.zshrc` from `~/.config/zsh/` instead of `~/`.
+
+**`~/.agents` still exists too — as a plain compatibility symlink** (`~/.agents -> .config/agents`, created manually, not stow-managed). The `kylemcd/skills` submodule has several skills (`worktree`, `fix-pr-comments`, `auto-build`) whose own scripts hardcode `~/.agents/skills/...` as an absolute path; that's a separate repo, so fixing it here would mean editing and pushing to `kylemcd/skills` too, which is out of scope for this repo. The symlink is what keeps those hardcoded paths working. Leave it in place unless/until those scripts get updated upstream to use `~/.config/agents/skills` instead.
+
+**`~/.claude/skills` is also a plain compatibility symlink**, pointing at `home/.config/agents/skills` — that's what Claude Code (this session included) actually reads skills from. If `home/.config/agents/skills` ever moves again, repoint it: `ln -sfn /Users/kyle/.computer/home/.config/agents/skills ~/.claude/skills`.
+
+### `~/.zshenv` is intentionally NOT in this repo
+
+`~/.zshenv` holds live secrets (API keys) alongside the `ZDOTDIR` export, so it's a plain unmanaged file directly in `$HOME` — same reasoning as `~/.agent/memory/` below. **Never add it to this repo or symlink it in via stow.** If it needs a new line (like the `ZDOTDIR` export was), edit `~/.zshenv` directly, the same way `scripts/install.sh` edits `~/.gitconfig` directly with `git config --global`.
 
 ## workbench sync (mutagen)
 
@@ -52,7 +72,7 @@ two-way sync with the workbench homelab box
 
 ## Skills submodule
 
-`.config/agents-root/.agents/skills/` is a git submodule pointing at the
+`home/.config/agents/skills/` is a git submodule pointing at the
 private [kylemcd/skills](https://github.com/kylemcd/skills) repo. That keeps
 all skill content in one place, shared across every repo/machine that wants
 it, instead of living only inside this dotfiles repo.
@@ -64,13 +84,13 @@ it, instead of living only inside this dotfiles repo.
   (see `scripts/pull.sh`) — so it always checks out the latest commit on
   `kylemcd/skills` main, not the exact SHA pinned in this repo's tree.
 - **Editing a skill?** Just commit and push from inside
-  `.config/agents-root/.agents/skills/` itself (it's its own repo). No need
+  `home/.config/agents/skills/` itself (it's its own repo). No need
   to also bump the gitlink here — the next `computer pull` (on any machine)
   picks it up automatically. This means `git status` here may show the
   submodule as "modified" after a pull that picked up new commits; that's
   expected and safe to leave uncommitted. If you do want to lock in a
   specific skills version in this repo's history (e.g. for reproducibility),
-  `git add .config/agents-root/.agents/skills && git commit` records the
+  `git add home/.config/agents/skills && git commit` records the
   currently-checked-out commit as the pointer.
 - **skillset symlinks** (`skillset install <name>`, used for shared Knock
   work skills) land inside this submodule directory too. They're excluded via
@@ -80,9 +100,9 @@ it, instead of living only inside this dotfiles repo.
 
 ## Key Rules
 
-- **Always check this repo first** before looking elsewhere for config files. If the user asks about a tool's config (AeroSpace, Ghostty, Neovim, Zsh, OpenCode, etc.), look in `.config/<tool>/` here first.
-- Config files are stowed, so `.config/aerospace/aerospace/aerospace.toml` here maps to `~/.config/aerospace/aerospace.toml`.
-- Do not create new top-level config directories without also updating `scripts/install.sh` to stow them.
+- **Always check this repo first** before looking elsewhere for config files. If the user asks about a tool's config (AeroSpace, Ghostty, Neovim, Zsh, etc.), look in `home/.config/<tool>/` here first.
+- Config files are stowed, so `home/.config/aerospace/aerospace.toml` here maps to `~/.config/aerospace/aerospace.toml` — everything under `home/.config/` mirrors `~/.config/` directly, with no wrapper folder.
+- Do not create new top-level config directories without also updating `scripts/install.sh` to stow them (or, for anything under `~/.config/`, just add it under `home/.config/` — the `.config` package already covers it, no script change needed).
 - If stow hits unmanaged-file conflicts during install/pull, `scripts/dotfiles.sh` now auto-backs up the conflicting targets to `~/.local/state/computer/stow-conflicts/<timestamp>/` before retrying.
 - **Keep this file up to date.** When new tools, configs, skills, or conventions are added to this repo, update AGENTS.md to reflect them.
 
@@ -91,28 +111,19 @@ it, instead of living only inside this dotfiles repo.
 
 **NEVER write to `~/.config/`, `~/`, or any path outside this repo directly.**
 
-All config changes MUST be made to the files inside this repo (under `.config/`). Stow symlinks them to the correct locations automatically. Writing directly to `~/.config/` bypasses version control and will be overwritten or will conflict with stow.
+All config changes MUST be made to the files inside this repo (under `home/`). Stow symlinks them to the correct locations automatically. Writing directly to `~/.config/` bypasses version control and will be overwritten or will conflict with stow.
 
 Examples:
-- To change the OpenCode config → edit `.config/opencode/opencode/opencode.json` in this repo, NOT `~/.config/opencode/opencode.json`
-- To add an agent skill → edit files under `.config/agents-root/.agents/skills/`, NOT `~/.agents/skills/`
-- To change Ghostty config → edit `.config/ghostty/ghostty/config`, NOT `~/.config/ghostty/config`
+- To add an agent skill → edit files under `home/.config/agents/skills/`, NOT `~/.config/agents/skills/`
+- To change Ghostty config → edit `home/.config/ghostty/config`, NOT `~/.config/ghostty/config`
 
 If a tool's install script (like `ocx`, `brew`, etc.) writes files directly to `~/.config/`, copy the relevant output back into this repo and do not leave changes outside the repo.
 
 ## Skills
 
-Agent skills live in `.config/agents-root/.agents/skills/` and are stowed to `~/.agents/skills/`.
+Agent skills live in `home/.config/agents/skills/` and are stowed to `~/.config/agents/skills/`.
 
 **IMPORTANT:** Always use the `skill-creator` skill when creating or modifying any skill. Never write a skill manually without going through `skill-creator` unless explicitly told to skip it.
-
-### Draft skills (in repo, not live)
-
-Skills in `.config/agents-root/` but **outside** `.agents/skills/` are not stowed and therefore not visible to agents. They are works-in-progress kept in the repo for development.
-
-- **agent-team-draft** → `.config/agents-root/agent-team-draft/` — orchestrates a team of specialized agents for large tasks
-
-To promote a draft skill to live: move it into `.config/agents-root/.agents/skills/` and re-stow.
 
 ### Available skills
 

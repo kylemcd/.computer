@@ -67,9 +67,9 @@ done < "${REPO_ROOT}/curl-packages"
 # Git config
 log "Configuring git..."
 git config --global credential.helper osxkeychain
-if ! grep -qF 'gitconfig-computer' "${HOME}/.gitconfig" 2>/dev/null; then
+if ! grep -qF '~/.config/git/gitconfig-computer' "${HOME}/.gitconfig" 2>/dev/null; then
   log "Adding gitconfig-computer include..."
-  git config --global include.path '~/.gitconfig-computer'
+  git config --global include.path '~/.config/git/gitconfig-computer'
 fi
 
 # Apply macOS settings
