@@ -76,7 +76,16 @@ Plannotator's installer writes its own copies of the `plannotator-*` skills into
 
 **Why it matters beyond duplication:** one of the scopes the installer writes is `~/.agents/skills`, which symlinks back into this repo — so an unsuppressed install drops untracked files directly into the working tree. `home/.config/agents/skills/plannotator/` arrived exactly that way.
 
-Note that the installer's copies and the submodule's copies have **diverged**: the upstream ones use the `!`-prefixed pre-execution form with `allowed-tools` frontmatter, while the submodule's are plain run-the-command skills. Suppressing the installer means the submodule versions are what ship. If upstream's behavior is wanted, port it into the submodule rather than re-enabling the installer.
+**Which variant the submodule holds, and why.** Upstream ships two bodies for the same skill names, on purpose:
+
+- `apps/skills/core/*` — plain prose. The model reads it and runs `plannotator …` through its own shell. Works in any agent.
+- `apps/skills/claude/*` — same skills using Claude Code's dynamic-context injection (`` !`plannotator … $ARGUMENTS` ``) plus `allowed-tools` and `disable-model-invocation`, so `/plannotator-*` runs the binary with no permission prompt. That injection is a Claude-Code-only extension.
+
+`home/.config/agents/skills/` tracks the **`core/`** variant, byte-identical to upstream (v0.27.11 at time of writing). That's required for the one-source-linked-everywhere model: the `claude/` body says "The output above will be one of:", which only makes sense *after* injection — in Codex or any other agent there is no output above, so that body is actively wrong outside Claude Code. A single shared skill therefore has to be `core/`.
+
+The tradeoff is real and deliberate: Claude Code gives up the auto-run/`allowed-tools` form for `plannotator-annotate`, `-last`, and `-review`, and may prompt for permission when running the binary. To get that form back, drop upstream's `apps/skills/claude/*` copies into `~/.claude/skills/` as real directories — `dotfiles_link_skills_into()` detects real directories it doesn't own, skips them with a warning, and leaves them alone. That is upstream's intended split, at the cost of those three skills no longer coming from one source.
+
+To resync with a newer upstream, copy `apps/skills/core/*` from the release tag over `home/.config/agents/skills/plannotator*` and commit to `kylemcd/skills`.
 
 **The per-skill links also have a live watcher, not just a per-stow sync** — unlike `~/.agents` (a whole-directory symlink, live the moment a file exists on disk), the per-skill links for Claude and Codex only update when `dotfiles_link_skill_compat()` actually runs. `dotfiles_install_skill_watcher()` (also in `scripts/dotfiles.sh`, called right after it in `dotfiles_stow()`) registers a per-user launchd agent — `~/Library/LaunchAgents/dev.kylemcd.computer.skill-sync.plist`, `WatchPaths` on `home/.config/agents/skills` — that reruns the linking function the moment a skill is added, removed, or renamed there, with no `computer stow`/`pull` needed. Verified end-to-end: a new skill dir shows up under `~/.codex/skills/` in about a second, no command run. macOS only (no-op on Linux); logs to `~/.local/state/computer/skill-sync.log`. Re-registering (every `dotfiles_stow()` run) unloads and reloads it, so editing the plist logic here and re-running `computer stow` is enough to pick up changes — no manual `launchctl` needed. To inspect or remove it by hand: `launchctl list | grep skill-sync`, `launchctl unload ~/Library/LaunchAgents/dev.kylemcd.computer.skill-sync.plist`.
 
@@ -140,7 +149,9 @@ living only inside this dotfiles repo.
 - **Cloning fresh?** `computer install` populates it. By hand:
   `git submodule update --init` (or clone with `--recurse-submodules`).
 - **Editing a skill?** Just commit and push from inside
-  `home/.config/agents/skills/` itself (it's its own repo). No need
+  `home/.config/agents/skills/` itself (it's its own repo) — `dotfiles_update_submodules()`
+  passes `--merge`, so it stays on `main` rather than the detached HEAD plain
+  `--remote` would leave, and an in-place commit lands on a real branch. No need
   to also bump the gitlink here — the next `computer pull` (on any machine)
   picks it up automatically. This means `git status` here may show the
   submodule as "modified" after a pull that picked up new commits; that's

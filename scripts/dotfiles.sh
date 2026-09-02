@@ -47,7 +47,14 @@ dotfiles_update_submodules() {
   # them off the SHA their own parent pins. tpm pins lib/tmux-test, so the
   # combined form left tpm permanently reporting "modified content" after every
   # install. Top-level tracks the branch; nested stays pinned.
-  if git -C "${DOTFILES_REPO_ROOT}" submodule update --init --remote &&
+  #
+  # `--merge` matters as much as `--remote`. On its own, `--remote` checks the
+  # submodule out at a DETACHED HEAD. The skills submodule is edited in place
+  # and committed from inside itself (see AGENTS.md), and a commit made on a
+  # detached HEAD belongs to no branch — it looks fine locally and is trivially
+  # lost. --merge merges the tracked branch into the checked-out branch instead,
+  # so the submodule stays on `main` and in-place commits land where they should.
+  if git -C "${DOTFILES_REPO_ROOT}" submodule update --init --remote --merge &&
     git -C "${DOTFILES_REPO_ROOT}" submodule foreach --quiet \
       'git submodule update --init --recursive'; then
     return 0
