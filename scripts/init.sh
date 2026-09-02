@@ -4,6 +4,9 @@ set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
+source "${SCRIPT_DIR}/homebrew.sh"
+computer_homebrew_env
+
 log() { printf "[init] %s\n" "$*"; }
 err() { printf "[init][error] %s\n" "$*" >&2; exit 1; }
 

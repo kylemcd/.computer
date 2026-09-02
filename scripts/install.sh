@@ -8,14 +8,19 @@ err() { printf "[install][error] %s\n" "$*" >&2; exit 1; }
 
 REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 
+source "${REPO_ROOT}/scripts/homebrew.sh"
+computer_homebrew_env
+
 # Ensure Homebrew is available
 if ! command -v brew >/dev/null 2>&1; then
   err "Homebrew not found. Run 'computer init' first."
 fi
 
 # Install packages
-log "Installing packages..."
-brew bundle --file="${REPO_ROOT}/packages"
+log "Installing packages with $(command -v brew)..."
+# Bundle buffers child output by default, making a long batch look stuck
+# on the last listed package. Stream downloads, builds, and prompts.
+brew bundle --verbose --file="${REPO_ROOT}/packages"
 
 # Ensure stow is available
 if ! command -v stow >/dev/null 2>&1; then

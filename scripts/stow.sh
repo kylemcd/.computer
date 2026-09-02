@@ -7,6 +7,9 @@ err() { printf "[stow][error] %s\n" "$*" >&2; exit 1; }
 
 REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 
+source "${REPO_ROOT}/scripts/homebrew.sh"
+computer_homebrew_env
+
 if ! command -v stow >/dev/null 2>&1; then
   err "stow not found. Install stow first, then re-run."
 fi

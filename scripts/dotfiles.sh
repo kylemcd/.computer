@@ -47,11 +47,18 @@ dotfiles_stow_package() {
     warn "  ${line}"
   done <<< "${output}"
 
-  local -a conflicts
+  local -a conflicts=()
   local line
   while IFS= read -r line; do
     if [[ "${line}" =~ existing\ target\ ([^[:space:]]+)\ since\ neither\ a\ link\ nor\ a\ directory ]]; then
       conflicts+=("${BASH_REMATCH[1]}")
+    elif [[ "${line}" =~ existing\ target\ is\ not\ owned\ by\ stow:\ (.+)$ ]]; then
+      # Old repo layouts leave dangling links that stow will not replace.
+      # Back these up like unmanaged files; leave live foreign links alone.
+      local conflict="${target}/${BASH_REMATCH[1]}"
+      if [[ -L "${conflict}" && ! -e "${conflict}" ]]; then
+        conflicts+=("${BASH_REMATCH[1]}")
+      fi
     fi
   done <<< "${output}"
 
@@ -60,7 +67,7 @@ dotfiles_stow_package() {
   fi
 
   local backup_root
-  backup_root="${HOME}/.local/state/computer/stow-conflicts/$(date +%Y%m%d-%H%M%S)"
+  backup_root="${XDG_STATE_HOME:-${HOME}/.local/state}/computer/stow-conflicts/$(date +%Y%m%d-%H%M%S)"
   mkdir -p "${backup_root}"
 
   local moved=0
@@ -87,6 +94,17 @@ dotfiles_stow_package() {
 
   warn "Retrying stow for ${pkg} after backing up conflicts."
   stow --dir="${stow_dir}" --target="${target}" --restow "${pkg}"
+}
+
+dotfiles_configure_zsh() {
+  # This bootstrap must live outside stow: an existing .zshenv can contain
+  # secrets. Append only the redirect and preserve all existing content.
+  local zshenv="${HOME}/.zshenv"
+  local redirect='export ZDOTDIR="$HOME/.config/zsh"'
+  if ! grep -qxF "${redirect}" "${zshenv}" 2>/dev/null; then
+    printf '\n# Load the shell config managed by .computer.\n%s\n' "${redirect}" >> "${zshenv}"
+    log "  Configured ~/.zshenv to load ~/.config/zsh"
+  fi
 }
 
 dotfiles_link_skill_compat() {
@@ -239,6 +257,8 @@ dotfiles_stow() {
       if ! dotfiles_stow_package "${DOTFILES_REPO_ROOT}/home" "${HOME}/${pkg}" "${pkg}"; then
         warn "Failed to stow ${pkg}"
         stow_failed=1
+      elif [[ "${pkg}" == ".config" && -f "${HOME}/.config/zsh/.zshrc" ]]; then
+        dotfiles_configure_zsh || return 1
       fi
     fi
   done

@@ -14,6 +14,7 @@ This is a dotfiles/configuration repository managed with [GNU Stow](https://www.
 ├── scripts/
 │   ├── init.sh           # Xcode CLI tools, Rosetta, Homebrew
 │   ├── install.sh        # brew bundle + stow + package extras
+│   ├── homebrew.sh       # select the platform's Homebrew before shell config is loaded
 │   ├── stow.sh           # stow dotfiles only (no package install)
 │   ├── linux-stow.sh     # Linux-focused stow (skips oh-my-zsh bootstrap)
 │   └── mutagen-sync.sh   # set up / ensure workbench <-> ~/projects file sync
@@ -110,6 +111,9 @@ it, instead of living only inside this dotfiles repo.
 - Config files are stowed, so `home/.config/aerospace/aerospace.toml` here maps to `~/.config/aerospace/aerospace.toml` — everything under `home/.config/` mirrors `~/.config/` directly, with no wrapper folder.
 - Do not create new top-level config directories without also updating `scripts/install.sh` to stow them (or, for anything under `~/.config/`, just add it under `home/.config/` — the `.config` package already covers it, no script change needed).
 - If stow hits unmanaged-file conflicts during install/pull, `scripts/dotfiles.sh` now auto-backs up the conflicting targets to `~/.local/state/computer/stow-conflicts/<timestamp>/` before retrying.
+- Dangling symlinks left by the old repo layout are also backed up before stow retries. Live foreign symlinks remain conflicts.
+- After successfully stowing Zsh, `dotfiles_configure_zsh()` appends the `ZDOTDIR` export to the unmanaged `~/.zshenv` if missing, preserving existing content and secrets. It never puts `.zshenv` in version control.
+- `install.sh`, `init.sh`, and `stow.sh` select the platform's Homebrew through `scripts/homebrew.sh` before checking tools. Installation uses `brew bundle --verbose` to show child output as it runs; the final listed package can otherwise hide an entire batch of downloads or builds.
 - **Keep this file up to date.** When new tools, configs, skills, or conventions are added to this repo, update AGENTS.md to reflect them.
 
 
