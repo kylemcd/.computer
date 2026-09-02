@@ -1,5 +1,3 @@
-alias nix-rebuild='sudo -H darwin-rebuild switch --flake ~/\.computer/nix-darwin#kpm'
-
 alias vim="nvim"
 alias vi="nvim"
 
@@ -66,13 +64,13 @@ tk() {
   read -q "REPLY?Kill tmux server? [y/N] " && echo && tmux kill-server
 }
 alias tl="tmux ls"
-_tsp_split() { ~/.computer/.config/tmux/tmux/split-pane.sh "$1"; }
+_tsp_split() { ~/.config/tmux/split-pane.sh "$1"; }
 alias tsp="_tsp_split 2"
 alias tsp2="_tsp_split 2"
 tsp3() { _tsp_split 3; }
 tsp4() { _tsp_split 4; }
 tsp5() { _tsp_split 5; }
-alias tc="~/.computer/.config/tmux/tmux/close-pane.sh"
+alias tc="~/.config/tmux/close-pane.sh"
 
 # Save clipboard image to /tmp and print the path for use in OpenCode via @
 imgpaste() {

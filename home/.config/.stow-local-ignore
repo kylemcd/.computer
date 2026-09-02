@@ -1,1 +1,9 @@
+# Stow reads the ignore list from <stow-dir>/<package>/.stow-local-ignore.
+# The stow dir is home/ and the package is .config (see dotfiles_stow() in
+# scripts/dotfiles.sh), so this file — home/.config/.stow-local-ignore — is
+# the one stow actually uses. A copy at the repo root is never read.
+#
+# Entries are regexes matched against each path stow would otherwise link.
+
+# macOS metadata
 \.DS_Store

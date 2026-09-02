@@ -11,10 +11,16 @@ REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 source "${REPO_ROOT}/scripts/homebrew.sh"
 computer_homebrew_env
 
+source "${REPO_ROOT}/scripts/dotfiles.sh"
+
 # Ensure Homebrew is available
 if ! command -v brew >/dev/null 2>&1; then
   err "Homebrew not found. Run 'computer init' first."
 fi
+
+# Before anything reads from them: skills and tmux plugins live in submodules,
+# and a fresh clone leaves those directories empty until this runs.
+dotfiles_update_submodules
 
 # Install packages
 log "Installing packages with $(command -v brew)..."
@@ -26,8 +32,6 @@ brew bundle --verbose --file="${REPO_ROOT}/packages"
 if ! command -v stow >/dev/null 2>&1; then
   err "stow not found. It should have been installed by brew bundle."
 fi
-
-source "${REPO_ROOT}/scripts/dotfiles.sh"
 
 dotfiles_install_oh_my_zsh
 
@@ -63,11 +67,21 @@ fi
 
 # Install curl packages
 log "Installing curl packages..."
-while IFS= read -r url || [[ -n "$url" ]]; do
-  [[ -z "$url" || "$url" == \#* ]] && continue
-  log "  Running installer: $url"
-  curl -fsSL "$url" | bash
+while IFS= read -r line || [[ -n "$line" ]]; do
+  [[ -z "$line" || "$line" == \#* ]] && continue
+
+  # Lines are "<url> [args...]". `bash -s --` is the only way to hand flags to
+  # an installer that arrives over a pipe; args stay unquoted on purpose so a
+  # multi-flag line splits into separate arguments.
+  read -r url args <<< "$line"
+  log "  Running installer: ${url}${args:+ ${args}}"
+  # shellcheck disable=SC2086
+  curl -fsSL "$url" | bash -s -- ${args}
 done < "${REPO_ROOT}/curl-packages"
+
+# Make plannotator's skip-skills choice stick for installs this repo doesn't
+# drive (a manual `curl | bash`, a reinstall) — see the function's comment.
+dotfiles_configure_plannotator
 
 # Git config
 log "Configuring git..."

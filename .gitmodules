@@ -2,3 +2,11 @@
 	path = home/.config/agents/skills
 	url = git@github.com:kylemcd/skills.git
 	branch = main
+[submodule "home/.config/tmux/plugins/tpm"]
+	path = home/.config/tmux/plugins/tpm
+	url = https://github.com/tmux-plugins/tpm.git
+	branch = master
+[submodule "home/.config/tmux/plugins/tmux-floax"]
+	path = home/.config/tmux/plugins/tmux-floax
+	url = https://github.com/omerxx/tmux-floax.git
+	branch = main

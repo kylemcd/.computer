@@ -10,28 +10,39 @@ This is a dotfiles/configuration repository managed with [GNU Stow](https://www.
 
 ```
 .computer/
-├── bin/computer          # CLI: init, install, stow, linux-stow, upgrade, pull, os, mutagen, help
+├── bin/computer                  # CLI: init, install, stow, linux-stow, upgrade, pull, os, mutagen, help
 ├── scripts/
-│   ├── init.sh           # Xcode CLI tools, Rosetta, Homebrew
-│   ├── install.sh        # brew bundle + stow + package extras
-│   ├── homebrew.sh       # select the platform's Homebrew before shell config is loaded
-│   ├── stow.sh           # stow dotfiles only (no package install)
-│   ├── linux-stow.sh     # Linux-focused stow (skips oh-my-zsh bootstrap)
-│   └── mutagen-sync.sh   # set up / ensure workbench <-> ~/projects file sync
-├── packages              # Brewfile
-├── bun-packages          # bun global packages (one per line)
-├── gh-extensions         # gh extensions (one per line)
-├── curl-packages         # curl | bash installers (one URL per line)
+│   ├── init.sh                   # Xcode CLI tools, Rosetta, Homebrew
+│   ├── install.sh                # submodules + brew bundle + stow + package extras + OS settings
+│   ├── pull.sh                   # git pull, then install.sh (which updates submodules)
+│   ├── homebrew.sh               # select the platform's Homebrew before shell config is loaded
+│   ├── dotfiles.sh               # shared helpers: stow, submodule update, skill linking (sourced, never run)
+│   ├── stow.sh                   # stow dotfiles only (no package install)
+│   ├── linux-stow.sh             # Linux-focused stow (skips oh-my-zsh bootstrap)
+│   ├── os.sh                     # macOS defaults + login items (idempotent)
+│   ├── upgrade.sh                # brew update / upgrade / cleanup
+│   ├── mutagen-sync.sh           # set up / ensure workbench <-> ~/projects file sync
+│   └── ignore-skillset-skills.sh # keep skillset symlinks out of git
+├── packages                      # Brewfile
+├── bun-packages                  # bun global packages (one per line)
+├── gh-extensions                 # gh extensions (one per line)
+├── curl-packages                 # curl | bash installers, "<url> [args...]" per line
 └── home/
-    └── .config/          # stowed with --target=~/.config — mirrors it directly
-        ├── aerospace/    # → ~/.config/aerospace/
-        ├── agents/       # → ~/.config/agents/  (skills/ is a git submodule)
-        ├── ghostty/      # → ~/.config/ghostty/
-        ├── git/          # → ~/.config/git/  (gitconfig-computer only — ~/.config/git/ is a real, pre-existing dir with other unrelated content)
-        ├── nvim/         # → ~/.config/nvim/
-        ├── tmux/         # → ~/.config/tmux/  (plugins/{tpm,tmux-floax} are gitlinks, not real submodules)
-        └── zsh/          # → ~/.config/zsh/  (.zshrc lives here too, via ZDOTDIR — see below)
+    └── .config/                  # stowed with --target=~/.config — mirrors it directly
+        ├── .stow-local-ignore    # stow's ignore list — see note below
+        ├── aerospace/            # → ~/.config/aerospace/
+        ├── agents/               # → ~/.config/agents/  (skills/ is a git submodule)
+        ├── ghostty/              # → ~/.config/ghostty/
+        ├── git/                  # → ~/.config/git/  (gitconfig-computer only — ~/.config/git/ is a real, pre-existing dir with other unrelated content)
+        ├── nvim/                 # → ~/.config/nvim/
+        ├── tmux/                 # → ~/.config/tmux/  (plugins/{tpm,tmux-floax} are git submodules)
+        └── zsh/                  # → ~/.config/zsh/  (.zshrc lives here too, via ZDOTDIR — see below)
 ```
+
+**Stow's ignore list lives at `home/.config/.stow-local-ignore`.** Stow reads it from
+`<stow-dir>/<package>/.stow-local-ignore` — the stow dir is `home/` and the package is
+`.config`, so that path is the only one it consults. A copy at the repo root is inert; there
+used to be one, and it was removed for that reason. Don't add one back.
 
 opencode, gh-dash, tuicr, and Factory (`~/.factory/settings.json`) used to be managed here
 too — removed by request. The apps/CLIs themselves are untouched (still installed, still
@@ -48,10 +59,26 @@ Two things need something *outside* this repo to actually take effect, because t
 **Agent skills also get linked into other tools that don't use stow at all** — handled automatically by `dotfiles_link_skill_compat()` in `scripts/dotfiles.sh`, called at the end of every `dotfiles_stow()` (so every `computer stow`/`install`/`pull`, on any machine, keeps these current — nothing here needs a manual fix):
 
 - **`~/.agents -> .config/agents`** — a few skills in the `kylemcd/skills` submodule itself (`worktree`, `fix-pr-comments`, `auto-build`) hardcode `~/.agents/skills/...` as an absolute path in their own scripts. That's a separate repo, so fixing it here would mean editing and pushing to `kylemcd/skills` too, out of scope for this repo. The symlink is what keeps those hardcoded paths working.
-- **`~/.claude/skills -> home/.config/agents/skills`** — one whole-directory symlink; that's what Claude Code (this session included) actually reads skills from.
-- **`~/.codex/skills/<name>`** — one symlink *per skill*, not a single directory. Codex bundles its own skills under `~/.codex/skills/.system/` (skill-creator, review-agent, etc. — untouched, not ours) and expects user skills as direct siblings, `~/.codex/skills/<name>/SKILL.md` (confirmed by reading its own `skill-installer` script, which installs to exactly that layout — no directory-level symlink is possible here). The function keeps this in sync both ways: adds a link for every skill currently in the submodule, and removes any link it previously made for a skill since renamed or removed — it only ever touches links pointing back into `home/.config/agents/skills/`, never `.system/` or anything else under `~/.codex/skills/`.
+- **`~/.claude/skills/<name>`** and **`~/.codex/skills/<name>`** — one symlink *per skill*, never a whole-directory symlink. Both agents read user skills as direct children of their own skills dir (`<dir>/<name>/SKILL.md`), and both already hold real directories that aren't ours: Codex bundles its own under `~/.codex/skills/.system/`, and `~/.claude/skills/` collects skills installed by other tools (the plannotator set, the Cloudflare set). Shared helper: `dotfiles_link_skills_into()`.
 
-**This one also has a live watcher, not just a per-stow sync** — unlike the two whole-directory symlinks above (instantly live the moment a file exists on disk), Codex's per-skill links only update when `dotfiles_link_skill_compat()` actually runs. `dotfiles_install_skill_watcher()` (also in `scripts/dotfiles.sh`, called right after it in `dotfiles_stow()`) registers a per-user launchd agent — `~/Library/LaunchAgents/dev.kylemcd.computer.skill-sync.plist`, `WatchPaths` on `home/.config/agents/skills` — that reruns the linking function the moment a skill is added, removed, or renamed there, with no `computer stow`/`pull` needed. Verified end-to-end: a new skill dir shows up under `~/.codex/skills/` in about a second, no command run. macOS only (no-op on Linux); logs to `~/.local/state/computer/skill-sync.log`. Re-registering (every `dotfiles_stow()` run) unloads and reloads it, so editing the plist logic here and re-running `computer stow` is enough to pick up changes — no manual `launchctl` needed. To inspect or remove it by hand: `launchctl list | grep skill-sync`, `launchctl unload ~/Library/LaunchAgents/dev.kylemcd.computer.skill-sync.plist`.
+  **Why not a single directory symlink — this bit already bit us once.** `~/.claude/skills` used to be `ln -sfn "${skills_dir}" "${HOME}/.claude/skills"`. Because `~/.claude/skills` already existed as a *real directory*, `ln` didn't replace it — it created the link *inside* it, as `~/.claude/skills/skills`, leaving every skill at `~/.claude/skills/skills/<name>/SKILL.md`: one level too deep, silently invisible to Claude Code, with no error anywhere. The whole submodule was unreadable by Claude Code while appearing correct in the logs. `dotfiles_link_skills_into()` now removes that stale nested link if it finds one.
+
+  **Name collisions are skipped, never overwritten.** If `<dir>/<name>` already exists as a real directory, another installer owns it — the plannotator installer in `curl-packages` writes `plannotator*/` straight into `~/.claude/skills/`, which collides with the submodule's own copies of those skills. Linking onto it would nest one level down all over again, so the helper skips it and prints a `[warn]` naming the path. Currently 4 skills are skipped this way for Claude (`plannotator`, `plannotator-annotate`, `plannotator-last`, `plannotator-review`); the other 35 link fine, and all 39 link for Codex. To make the submodule copy win, delete the real directory in `~/.claude/skills/` and re-run `computer stow`.
+
+  Sync is two-way for links we own: a link is added for every skill in the submodule, and any link we previously made is removed once it dangles (skill renamed or deleted). It only ever touches symlinks pointing back into `home/.config/agents/skills/` — `.system/` and every other real directory is left alone.
+
+### Plannotator must not install its own skills
+
+Plannotator's installer writes its own copies of the `plannotator-*` skills into every agent scope it knows about, and can shell out to `npx skills add` for its extras. Those skills are maintained in the skills submodule instead, so that's suppressed in two places:
+
+- **`curl-packages`** passes `--skip-skills` on the installer line. That flag turns off both the skill writing and the `npx skills add` extras step.
+- **`dotfiles_configure_plannotator()`** (`scripts/dotfiles.sh`, called from `install.sh` after the curl installers) sets `skipInstall.skills: true` in `~/.plannotator/config.json` and `extras=no` in `~/.plannotator/install-prefs`, so the same choice holds for a run this repo doesn't drive — a manual `curl | bash`, or a reinstall. Both files hold live app state and can't be stowed over, so they're edited in place, the same way `dotfiles_configure_zsh()` edits `~/.zshenv`. Needs `jq` (in `packages`); warns and moves on without it.
+
+**Why it matters beyond duplication:** one of the scopes the installer writes is `~/.agents/skills`, which symlinks back into this repo — so an unsuppressed install drops untracked files directly into the working tree. `home/.config/agents/skills/plannotator/` arrived exactly that way.
+
+Note that the installer's copies and the submodule's copies have **diverged**: the upstream ones use the `!`-prefixed pre-execution form with `allowed-tools` frontmatter, while the submodule's are plain run-the-command skills. Suppressing the installer means the submodule versions are what ship. If upstream's behavior is wanted, port it into the submodule rather than re-enabling the installer.
+
+**The per-skill links also have a live watcher, not just a per-stow sync** — unlike `~/.agents` (a whole-directory symlink, live the moment a file exists on disk), the per-skill links for Claude and Codex only update when `dotfiles_link_skill_compat()` actually runs. `dotfiles_install_skill_watcher()` (also in `scripts/dotfiles.sh`, called right after it in `dotfiles_stow()`) registers a per-user launchd agent — `~/Library/LaunchAgents/dev.kylemcd.computer.skill-sync.plist`, `WatchPaths` on `home/.config/agents/skills` — that reruns the linking function the moment a skill is added, removed, or renamed there, with no `computer stow`/`pull` needed. Verified end-to-end: a new skill dir shows up under `~/.codex/skills/` in about a second, no command run. macOS only (no-op on Linux); logs to `~/.local/state/computer/skill-sync.log`. Re-registering (every `dotfiles_stow()` run) unloads and reloads it, so editing the plist logic here and re-running `computer stow` is enough to pick up changes — no manual `launchctl` needed. To inspect or remove it by hand: `launchctl list | grep skill-sync`, `launchctl unload ~/Library/LaunchAgents/dev.kylemcd.computer.skill-sync.plist`.
 
 Also worth knowing: Codex separately has `/Users/kyle/Code/skills` registered as a project in `~/.codex/config.toml` — a fully independent manual clone of the same `kylemcd/skills.git` remote, unrelated to this repo's submodule and *not* touched by `dotfiles_link_skill_compat()` or the watcher. It needs its own occasional `git pull` and won't update just because the submodule here does.
 
@@ -77,19 +104,41 @@ two-way sync with the workbench homelab box
   script and are self-ignored, so they never sync to workbench.
 - Full rationale + manual walkthrough: `~/projects/homelab/docs/mutagen-mac-setup.md`.
 
-## Skills submodule
+## Submodules
 
-`home/.config/agents/skills/` is a git submodule pointing at the
-private [kylemcd/skills](https://github.com/kylemcd/skills) repo. That keeps
-all skill content in one place, shared across every repo/machine that wants
-it, instead of living only inside this dotfiles repo.
+Three, all declared in `.gitmodules` and all tracking a branch rather than a
+pinned SHA:
 
-- **Cloning fresh?** Run `git submodule update --init` (or clone with
-  `--recurse-submodules`) to populate it.
-- **Tracks `main`.** The submodule is configured with `branch = main` in
-  `.gitmodules`, and `computer pull` runs `git submodule update --remote`
-  (see `scripts/pull.sh`) — so it always checks out the latest commit on
-  `kylemcd/skills` main, not the exact SHA pinned in this repo's tree.
+| Path | Remote | Branch |
+|---|---|---|
+| `home/.config/agents/skills` | `kylemcd/skills` (private) | `main` |
+| `home/.config/tmux/plugins/tpm` | `tmux-plugins/tpm` | `master` (its default; it has no `main`) |
+| `home/.config/tmux/plugins/tmux-floax` | `omerxx/tmux-floax` | `main` |
+
+**Kept current automatically.** `dotfiles_update_submodules()` in
+`scripts/dotfiles.sh` runs `git submodule update --init --recursive --remote`,
+and `scripts/install.sh` calls it before anything reads from those directories.
+So `computer install` and `computer pull` (which ends by running `install.sh`)
+both populate a fresh clone *and* fast-forward every submodule to the tip of its
+tracked branch. A failure there is a warning, not fatal — being offline
+shouldn't block a stow of what's already on disk.
+
+The tmux plugins were previously gitlinks with **no** `.gitmodules` entry and
+empty working directories, so `tpm` and `tmux-floax` were never actually
+installed — `run '~/.config/tmux/plugins/tpm/tpm'` and the `C-S-f` floax binding
+in `tmux.conf` both silently did nothing, and `git submodule status` errored out
+on the unregistered paths. They're real submodules now; don't re-create a
+gitlink without a matching `.gitmodules` entry.
+
+### The skills submodule specifically
+
+`home/.config/agents/skills/` points at the private
+[kylemcd/skills](https://github.com/kylemcd/skills) repo. That keeps all skill
+content in one place, shared across every repo/machine that wants it, instead of
+living only inside this dotfiles repo.
+
+- **Cloning fresh?** `computer install` populates it. By hand:
+  `git submodule update --init` (or clone with `--recurse-submodules`).
 - **Editing a skill?** Just commit and push from inside
   `home/.config/agents/skills/` itself (it's its own repo). No need
   to also bump the gitlink here — the next `computer pull` (on any machine)

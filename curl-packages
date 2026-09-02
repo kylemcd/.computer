@@ -1,8 +1,17 @@
 # curl-packages
-# One URL per line. Each script is piped to bash during install.
-# Format: <url>
+# One installer per line. Each script is piped to bash during install.
+# Format: <url> [args...]
+# Any args after the URL are passed to the installer (via `bash -s --`).
 
 # fff MCP server (fast file search for AI agents + neovim)
 https://dmtrkovalenko.dev/install-fff-mcp.sh
+
 # planning + code review tool for opencode
-https://plannotator.ai/install.sh
+#
+# --skip-skills: the plannotator-* skills are maintained in the skills
+# submodule (home/.config/agents/skills), so the installer must not write its
+# own copies. Left unsuppressed it writes into every agent scope it knows —
+# including ~/.agents/skills, which symlinks back into this repo, so its output
+# lands in the working tree. The same flag also suppresses the extras step,
+# which shells out to `npx skills add`.
+https://plannotator.ai/install.sh --skip-skills

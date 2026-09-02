@@ -18,23 +18,37 @@ computer linux-stow # stow configs only (Linux)
 ```
 .computer/
 ├── bin/
-│   └── computer         # CLI command
+│   └── computer                  # CLI command
 ├── scripts/
-│   ├── init.sh          # installs Xcode CLI tools, Rosetta, Homebrew
-│   ├── install.sh       # runs brew bundle + stow
-│   ├── stow.sh          # stows dotfiles only
-│   └── linux-stow.sh    # stows dotfiles only (Linux)
-├── packages             # Brewfile
+│   ├── init.sh                   # installs Xcode CLI tools, Rosetta, Homebrew
+│   ├── install.sh                # submodules + brew bundle + stow + OS settings
+│   ├── pull.sh                   # git pull, then install.sh
+│   ├── stow.sh                   # stows dotfiles only (macOS)
+│   ├── linux-stow.sh             # stows dotfiles only (Linux)
+│   ├── dotfiles.sh               # shared helpers: stow, submodules, skill linking
+│   ├── homebrew.sh               # selects the platform's Homebrew
+│   ├── os.sh                     # macOS defaults + login items
+│   ├── upgrade.sh                # brew update/upgrade/cleanup
+│   ├── mutagen-sync.sh           # workbench <-> ~/projects file sync
+│   └── ignore-skillset-skills.sh # keeps skillset symlinks out of git
+├── packages                      # Brewfile
+├── bun-packages                  # bun global packages (one per line)
+├── gh-extensions                 # gh extensions (one per line)
+├── curl-packages                 # curl | bash installers, "<url> [args...]" per line
 └── home/
-    └── .config/         # → ~/.config/ (stowed with --target=~/.config, so this mirrors it directly)
-        ├── aerospace/   # → ~/.config/aerospace/
-        ├── agents/      # → ~/.config/agents/  (skills/ is a git submodule)
-        ├── ghostty/     # → ~/.config/ghostty/
-        ├── git/         # → ~/.config/git/  (gitconfig-computer only — ~/.config/git/ is a real, pre-existing dir)
-        ├── nvim/        # → ~/.config/nvim/
-        ├── tmux/        # → ~/.config/tmux/
-        └── zsh/         # → ~/.config/zsh/  (.zshrc lives here too, via ZDOTDIR — see below)
+    └── .config/                  # → ~/.config/ (stowed with --target=~/.config, so this mirrors it directly)
+        ├── .stow-local-ignore    # the ignore list stow actually reads (see note below)
+        ├── aerospace/            # → ~/.config/aerospace/
+        ├── agents/               # → ~/.config/agents/  (skills/ is a git submodule)
+        ├── ghostty/              # → ~/.config/ghostty/
+        ├── git/                  # → ~/.config/git/  (gitconfig-computer only — ~/.config/git/ is a real, pre-existing dir)
+        ├── nvim/                 # → ~/.config/nvim/
+        ├── tmux/                 # → ~/.config/tmux/  (plugins/{tpm,tmux-floax} are git submodules)
+        └── zsh/                  # → ~/.config/zsh/  (.zshrc lives here too, via ZDOTDIR — see below)
 ```
+
+Stow reads its ignore list from `<stow-dir>/<package>/.stow-local-ignore` — here that's
+`home/.config/.stow-local-ignore`. A copy at the repo root is never read.
 
 No per-tool wrapper folder and no name repeated twice — `home/.config/` is stowed with
 `--target=~/.config` (not `~`), so its own contents map onto `~/.config/` one-to-one.
@@ -60,9 +74,16 @@ computer help      # show help
 
 ## What gets installed
 
-**CLI tools:** asdf, bun, gh, git, graphite, neovim, oh-my-posh, ripgrep, stow, zoxide, zsh-autosuggestions, zsh-syntax-highlighting
+See `packages` for the authoritative list — this is a summary.
 
-**Apps:** 1Password, AeroSpace, ChatGPT, Cursor, Firefox, Ghostty, GitHub Desktop, Ice, Obsidian, Postman, Raycast, Rectangle, Reminders Menubar, Shottr, Slack, Tailscale
+**CLI tools:** asdf, bun, fzf, gh, git, graphite, neovim, oh-my-posh, opencode, ripgrep,
+sesh, stow, television, tmux, tree-sitter, tree-sitter-cli, tuicr, worktrunk, zoxide, zsh,
+zsh-autosuggestions, zsh-syntax-highlighting
+
+**Apps:** 1Password, AeroSpace, ChatGPT, Cursor, Cursor CLI, Firefox, Ghostty, GitHub Desktop,
+HRM, Ice, macshot, Obsidian, Postman, Raycast, Reminders MenuBar, Shottr, Slack, Tailscale, Zen
+
+**Fonts:** Maple Mono
 
 ## Manual commands
 
