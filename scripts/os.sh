@@ -68,7 +68,6 @@ add_login_item "/Applications/Ice.app"
 add_login_item "/Applications/macshot.app"
 add_login_item "/Applications/Raycast.app"
 add_login_item "/Applications/Reminders MenuBar.app"
-add_login_item "/Applications/Shottr.app"
 add_login_item "/Applications/Tailscale.app"
 
 log "Done! Some changes may require logout/login to take effect."
