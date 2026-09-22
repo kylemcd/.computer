@@ -12,7 +12,8 @@ defaults write com.apple.dock autohide -bool true
 defaults write com.apple.dock orientation -string "left"
 defaults write com.apple.dock show-recents -bool false
 defaults write com.apple.dock magnification -bool false
-defaults write com.apple.dock autohide-time-modifier -float 0.5
+defaults write com.apple.dock autohide-time-modifier -float 0.25
+defaults write com.apple.dock autohide-delay -float 0
 
 # ------------------------------------------------------------------------------
 # Spaces
