@@ -1,10 +1,10 @@
 # .computer — Agent Instructions
 
-This is a dotfiles/configuration repository managed with [GNU Stow](https://www.gnu.org/software/stow/). There is exactly one stow package, `home/.config/`, stowed with `--target=~/.config` (**not** `$HOME`) — so its own contents map onto `~/.config/` one-to-one, with no per-tool wrapper folder and no name repeated twice in the path.
+This is a dotfiles/configuration repository managed with [GNU Stow](https://www.gnu.org/software/stow/). Nearly everything lives in one stow package, `home/.config/`, stowed with `--target=~/.config` (**not** `$HOME`) — so its own contents map onto `~/.config/` one-to-one, with no per-tool wrapper folder and no name repeated twice in the path. The one other package is `home/zen-profile/`, for a location that can't be redirected (see [Zen profile](#zen-profile-homezen-profile)).
 
 **Why `--target` is `~/.config`, not `$HOME`:** stow never uses the package name when computing target paths, only `--target` plus the package's own internal relative paths. So `home/.config/tmux/tmux.conf`, stowed with `--target=~/.config`, lands at `~/.config/tmux/tmux.conf` — correct, and "tmux" appears once. Stowing the same tree with `--target=$HOME` instead would need an extra `.config/tmux/` wrapper *inside* the package just to reach the same place (`home/.config/tmux/.config/tmux/tmux.conf` → `~/.config/tmux/tmux.conf`) — that redundant doubled nesting is exactly what this structure avoids. See `dotfiles_stow()` in `scripts/dotfiles.sh` for the working implementation.
 
-**Default to `~/.config/<tool>/` over a home-root dotfile whenever the tool actually supports it** (git via `include.path`, zsh via `ZDOTDIR` — see below). A tool that hardcodes its own location and can't be redirected (e.g. Factory's `~/.factory/`) needs its own sibling package next to `home/.config/`, targeting that real directory the same way — `.config` isn't managing anything like that right now, but that's the pattern if one comes up.
+**Default to `~/.config/<tool>/` over a home-root dotfile whenever the tool actually supports it** (git via `include.path`, zsh via `ZDOTDIR` — see below). A tool that hardcodes its own location and can't be redirected (e.g. Factory's `~/.factory/`) needs its own sibling package next to `home/.config/`, targeting that real directory the same way. `home/zen-profile/` is the one such package today.
 
 ## Repo Structure
 
@@ -16,7 +16,7 @@ This is a dotfiles/configuration repository managed with [GNU Stow](https://www.
 │   ├── install.sh                # submodules + brew bundle + stow + package extras + OS settings
 │   ├── pull.sh                   # git pull, then install.sh (which updates submodules)
 │   ├── homebrew.sh               # select the platform's Homebrew before shell config is loaded
-│   ├── dotfiles.sh               # shared helpers: stow, submodule update, skill linking (sourced, never run)
+│   ├── dotfiles.sh               # shared helpers: stow, Zen profile stow, submodule update, skill linking (sourced, never run)
 │   ├── stow.sh                   # stow dotfiles only (no package install)
 │   ├── linux-stow.sh             # Linux-focused stow (skips oh-my-zsh bootstrap)
 │   ├── os.sh                     # macOS defaults + login items (idempotent)
@@ -28,15 +28,18 @@ This is a dotfiles/configuration repository managed with [GNU Stow](https://www.
 ├── gh-extensions                 # gh extensions (one per line)
 ├── curl-packages                 # curl | bash installers, "<url> [args...]" per line
 └── home/
-    └── .config/                  # stowed with --target=~/.config — mirrors it directly
-        ├── .stow-local-ignore    # stow's ignore list — see note below
-        ├── aerospace/            # → ~/.config/aerospace/
-        ├── agents/               # → ~/.config/agents/  (skills/ is a git submodule)
-        ├── ghostty/              # → ~/.config/ghostty/
-        ├── git/                  # → ~/.config/git/  (gitconfig-computer only — ~/.config/git/ is a real, pre-existing dir with other unrelated content)
-        ├── nvim/                 # → ~/.config/nvim/
-        ├── tmux/                 # → ~/.config/tmux/  (plugins/{tpm,tmux-floax} are git submodules)
-        └── zsh/                  # → ~/.config/zsh/  (.zshrc lives here too, via ZDOTDIR — see below)
+    ├── .config/                  # stowed with --target=~/.config — mirrors it directly
+    │   ├── .stow-local-ignore    # stow's ignore list — see note below
+    │   ├── aerospace/            # → ~/.config/aerospace/
+    │   ├── agents/               # → ~/.config/agents/  (skills/ is a git submodule)
+    │   ├── ghostty/              # → ~/.config/ghostty/
+    │   ├── git/                  # → ~/.config/git/  (gitconfig-computer only — ~/.config/git/ is a real, pre-existing dir with other unrelated content)
+    │   ├── nvim/                 # → ~/.config/nvim/
+    │   ├── tmux/                 # → ~/.config/tmux/  (plugins/{tpm,tmux-floax} are git submodules)
+    │   └── zsh/                  # → ~/.config/zsh/  (.zshrc lives here too, via ZDOTDIR — see below)
+    └── zen-profile/              # stowed into Zen's default profile dir, looked up per machine — see below
+        ├── user.js               # → <profile>/user.js
+        └── chrome/userChrome.css # → <profile>/chrome/userChrome.css
 ```
 
 **Stow's ignore list lives at `home/.config/.stow-local-ignore`.** Stow reads it from
@@ -94,6 +97,20 @@ Also worth knowing: Codex separately has `/Users/kyle/Code/skills` registered as
 ### `~/.zshenv` is intentionally NOT in this repo
 
 `~/.zshenv` holds live secrets (API keys) alongside the `ZDOTDIR` export, so it's a plain unmanaged file directly in `$HOME` — same reasoning as `~/.agent/memory/` below. **Never add it to this repo or symlink it in via stow.** If it needs a new line (like the `ZDOTDIR` export was), edit `~/.zshenv` directly, the same way `scripts/install.sh` edits `~/.gitconfig` directly with `git config --global`.
+
+### Zen profile (`home/zen-profile/`)
+
+Zen (Firefox-based) only reads `user.js` and `chrome/userChrome.css` from inside a profile directory, `~/Library/Application Support/zen/Profiles/<id>/`. That can't be pointed at `~/.config`, and `<id>` differs per machine, so `home/zen-profile/` is a sibling stow package whose `--target` is looked up at stow time by `dotfiles_stow_zen_profile()` in `scripts/dotfiles.sh`. `dotfiles_stow()` calls it, so every `computer stow`/`install`/`pull` keeps it current. macOS only; a no-op until Zen has created a profile.
+
+- **Which profile:** every `Default=` path in Zen's `installs.ini` (and the `[Install…]` sections of `profiles.ini`), i.e. the profile Zen actually launches with. `profiles.ini`'s `Default=1` entry is ignored; on this Mac it points at an older profile Zen no longer opens.
+- **`chrome/` is created before stowing**, for the same reason `~/.config` is: if it doesn't exist, stow folds it into one symlink into this repo, and Zen then writes its Mods file (`chrome/zen-themes.css`) straight into the working tree. That file is Zen's own; leave it unmanaged.
+- **Restart Zen after a change.** Both files are only read at launch.
+- **`user.js` wins over about:config** on every launch, so change a pref it sets here, not in the browser.
+
+What it holds today:
+
+- `user.js` sets `toolkit.legacyUserProfileCustomizations.stylesheets = true` (without it Zen ignores `userChrome.css`) and pins Website appearance to Light (`layout.css.prefers-color-scheme.content-override = 1`). Zen's window theme stays Dark; Automatic (`2`) would follow that window theme, not macOS.
+- `chrome/userChrome.css` stops fullscreen videos on X closing about half a second after they open. Zen gives pages the *Website appearance* color-scheme only outside DOM fullscreen; inside it they get Zen's own window theme. With Zen set to Dark and websites to Light, the page's `prefers-color-scheme` flips the moment fullscreen starts, X re-renders the whole page, the fullscreened `<video>` is removed, and fullscreen ends. The CSS pins pages to the Website appearance value in and out of fullscreen, with explicit `light`/`dark` values: Zen's own `env(-moz-content-preferred-color-scheme)` doesn't resolve from `userChrome.css` and left every page dark. Upstream: [zen-browser/desktop#10074](https://github.com/zen-browser/desktop/issues/10074). It looks like an AeroSpace problem (a native-fullscreen Space appears and is torn down) but isn't: it reproduces with `aerospace enable off`.
 
 ## workbench sync (mutagen)
 

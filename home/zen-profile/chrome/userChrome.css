@@ -1,0 +1,35 @@
+/* Managed by ~/.computer: home/zen-profile/chrome/userChrome.css, stowed into
+ * the Zen profile by dotfiles_stow_zen_profile() in scripts/dotfiles.sh.
+ * Loaded because user.js sets toolkit.legacyUserProfileCustomizations.stylesheets.
+ */
+
+/* Keep web pages on the Website appearance setting while in fullscreen.
+ *
+ * Zen gives each page the color-scheme from Website appearance
+ * (layout.css.prefers-color-scheme.content-override), but the rule that does
+ * it (zen-browser-container.css) only matches :root:not([inDOMFullscreen]).
+ * When a video goes fullscreen, pages fall back to Zen's window theme
+ * (zen.view.window.scheme) instead. With a dark Zen window and light
+ * websites, prefers-color-scheme flips light -> dark right as fullscreen
+ * starts; X re-renders the whole page on that change, the fullscreened
+ * <video> is removed, and fullscreen exits about half a second later.
+ * https://github.com/zen-browser/desktop/issues/10074
+ *
+ * These rules pin pages to the Website appearance setting in and out of
+ * fullscreen. Zen's own rule uses env(-moz-content-preferred-color-scheme),
+ * but from this file that left every page dark (the env() didn't resolve, so
+ * color-scheme inherited the window's dark), hence the explicit values.
+ * Automatic (2) is left alone: Zen applies the window theme in and out of
+ * fullscreen then, so nothing flips.
+ */
+@media -moz-pref("layout.css.prefers-color-scheme.content-override", 0) {
+  #tabbrowser-tabpanels browser[type="content"] {
+    color-scheme: dark !important;
+  }
+}
+
+@media -moz-pref("layout.css.prefers-color-scheme.content-override", 1) {
+  #tabbrowser-tabpanels browser[type="content"] {
+    color-scheme: light !important;
+  }
+}

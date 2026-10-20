@@ -339,6 +339,52 @@ PLIST
   fi
 }
 
+# Zen (like Firefox) only reads user.js and chrome/userChrome.css from inside
+# a profile directory, ~/Library/Application Support/zen/Profiles/<id>/. That
+# can't be redirected to ~/.config, and <id> differs per machine, so
+# home/zen-profile/ is a sibling stow package whose target is looked up here
+# rather than fixed: every profile an install launches with (the Default= lines
+# in installs.ini / profiles.ini's [Install...] sections).
+#
+# chrome/ is created first for the same reason dotfiles_stow() creates
+# ~/.config: if it doesn't exist yet, stow folds it into a single symlink back
+# into this repo, and Zen would then write its Mods file (chrome/zen-themes.css)
+# straight into the working tree.
+#
+# macOS only; a no-op until Zen has created a profile. Zen reads both files at
+# launch, so a change needs a Zen restart, not just a re-stow.
+dotfiles_stow_zen_profile() {
+  local root="${HOME}/Library/Application Support/zen"
+  [[ -d "${root}" ]] || return 0
+
+  local -a profiles=()
+  local path
+  while IFS= read -r path; do
+    [[ "${path}" == /* ]] || path="${root}/${path}"
+    if [[ -d "${path}" ]]; then
+      profiles+=("${path}")
+    fi
+  done < <(cat "${root}/installs.ini" "${root}/profiles.ini" 2>/dev/null |
+    sed -n 's/^Default=//p' | grep -vx '1' | sort -u)
+
+  if [[ "${#profiles[@]}" -eq 0 ]]; then
+    warn "Zen is installed but no default profile was found in ${root}/installs.ini; skipping zen-profile"
+    return 0
+  fi
+
+  local profile failed=0
+  for profile in "${profiles[@]}"; do
+    mkdir -p "${profile}/chrome"
+    if dotfiles_stow_package "${DOTFILES_REPO_ROOT}/home" "${profile}" "zen-profile"; then
+      log "  zen-profile -> Zen profile ${profile##*/}"
+    else
+      warn "Failed to stow zen-profile into ${profile}"
+      failed=1
+    fi
+  done
+  return "${failed}"
+}
+
 dotfiles_stow() {
   if ! command -v stow >/dev/null 2>&1; then
     err "stow not found."
@@ -371,7 +417,9 @@ dotfiles_stow() {
   #                                 per-tool package needed)
   # A tool whose config can't live under ~/.config/ (hardcoded by the app
   # itself, e.g. ~/.factory/) would need its own sibling package here,
-  # named for its own real target dir the same way.
+  # named for its own real target dir the same way. Zen's profile is one,
+  # but its target has to be looked up per machine, so it's stowed by
+  # dotfiles_stow_zen_profile() below rather than from this list.
   # Space-delimited override, e.g.:
   #   DOTFILES_PACKAGES=".config"
   local -a packages
@@ -394,6 +442,11 @@ dotfiles_stow() {
       fi
     fi
   done
+
+  if [[ -d "${HOME}/Library/Application Support/zen" ]]; then
+    log "Stowing Zen profile config..."
+    dotfiles_stow_zen_profile || stow_failed=1
+  fi
 
   log "Linking agent skills into other tools..."
   dotfiles_link_skill_compat
